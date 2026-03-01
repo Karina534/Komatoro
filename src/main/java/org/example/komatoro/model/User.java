@@ -9,7 +9,6 @@ import lombok.ToString;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +33,7 @@ public class User extends BaseEntity{
     @Email(message = "Invalid email format")
     private String email;
 
+    @Setter
     @JsonIgnore
     @Column(name = "password", nullable = false)
     @Size(min = 6, max = 100, message = "Password must be between {min} and {max} characters")
@@ -108,5 +108,6 @@ public class User extends BaseEntity{
         defaultSettings.setUser(this);
         return defaultSettings;
     }
+
 }
 
