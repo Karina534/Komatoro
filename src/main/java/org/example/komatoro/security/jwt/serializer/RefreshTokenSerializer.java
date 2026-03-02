@@ -11,6 +11,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.example.komatoro.security.jwt.JwtToken;
 
+import java.util.Date;
 import java.util.function.Function;
 
 @Slf4j
@@ -41,7 +42,8 @@ public class RefreshTokenSerializer implements Function<JwtToken, String> {
                 new JWTClaimsSet.Builder()
                         .jwtID(jwtToken.id().toString())
                         .subject(jwtToken.subject())
-                        .issueTime(jwtToken.createdAt() == null ? null : java.util.Date.from(jwtToken.createdAt()))
+                        .issueTime(Date.from(jwtToken.createdAt()))
+                        .expirationTime(Date.from(jwtToken.expiresAt()))
                         .claim("authorities", jwtToken.authorities())
                         .build()
         );

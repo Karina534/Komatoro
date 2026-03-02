@@ -39,6 +39,7 @@ public class AccessTokenSerializer implements Function<JwtToken, String> {
                         .jwtID(jwtToken.id().toString())
                         .subject(jwtToken.subject())
                         .issueTime(Date.from(jwtToken.createdAt()))
+                        .expirationTime(Date.from(jwtToken.expiresAt()))
                         .claim("authorities", jwtToken.authorities())
                         .build()
         );
