@@ -16,7 +16,9 @@ public class DefaultAccessTokenFactory implements Function<JwtToken, JwtToken> {
     @Override
     public JwtToken apply(JwtToken jwtToken) {
         List<String> authorities = jwtToken.authorities().stream()
-                .filter(a -> !a.equals("ROLE_REFRESH") && !a.equals("ROLE_LOGOUT")).toList();
+                .filter(a -> !a.equals("ROLE_REFRESH") && !a.equals("ROLE_LOGOUT"))
+                .map(auth -> auth.substring(7))
+                .toList();
         return new JwtToken(
                 jwtToken.id(),
                 jwtToken.subject(),

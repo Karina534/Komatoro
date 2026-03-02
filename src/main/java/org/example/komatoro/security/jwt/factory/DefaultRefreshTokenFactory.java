@@ -23,7 +23,10 @@ public class DefaultRefreshTokenFactory implements Function<Authentication, JwtT
         List<String> authorities = new LinkedList<>();
         authorities.add("ROLE_REFRESH");
         authorities.add("ROLE_LOGOUT");
-        authorities.addAll(authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
+        authorities.addAll(authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .map(auth -> "CANCEL_" + auth)
+                .toList());
 
         return new JwtToken(
                 UUID.randomUUID(),

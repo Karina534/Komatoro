@@ -71,7 +71,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/login", "/api/users/registration").permitAll()
                         .requestMatchers("/login.html", "/home.html").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().hasAnyAuthority("ROEL_USER", "ROLE_ADMIN")
                 )
 //                .formLogin(form -> form
 //                        .loginPage("/api/users/login")

@@ -34,7 +34,7 @@ public class JwtRefreshTokenJweStringDeserializer implements Function<String, Jw
 
         } catch (ParseException | JOSEException e) {
             log.error(e.getMessage(), e);
-            throw new RuntimeException(e);
         }
+        return null;
     }
 }

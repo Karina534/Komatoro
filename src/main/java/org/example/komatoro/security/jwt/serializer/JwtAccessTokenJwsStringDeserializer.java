@@ -47,7 +47,6 @@ public class JwtAccessTokenJwsStringDeserializer implements Function<String, Jwt
 
         } catch (ParseException | JOSEException e) {
             log.error(e.getMessage(), e);
-            throw new RuntimeException(e);
         }
         return null;
     }
