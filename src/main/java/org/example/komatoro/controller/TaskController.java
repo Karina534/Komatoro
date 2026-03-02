@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,7 +38,7 @@ public class TaskController {
     @PostMapping
     public ResponseEntity<TaskDTOResponse> createTask(
             @Valid @RequestBody CreateTaskDTORequest createTaskDTO,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @AuthenticationPrincipal UserDetails userDetails
             ){
         TaskDTOResponse created = taskService.createTask(userDetails, createTaskDTO);
 
@@ -46,7 +47,7 @@ public class TaskController {
 
     @GetMapping
     public ResponseEntity<List<TaskDTOResponse>> getAllTasksByUser(
-                @AuthenticationPrincipal CustomUserDetails userDetails
+                @AuthenticationPrincipal UserDetails userDetails
     ){
         List<TaskDTOResponse> list = taskService.getAllTasksByUser(userDetails);
         return ResponseEntity.ok(list);
@@ -56,7 +57,7 @@ public class TaskController {
     public ResponseEntity<TaskDTOResponse> updateTask(
             @PathVariable("taskId") @NotNull Long taskId,
             @Valid @RequestBody UpdateTaskDTORequest updateTaskDTO,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @AuthenticationPrincipal UserDetails userDetails
             ){
         TaskDTOResponse updated = taskService.updateTask(userDetails, taskId, updateTaskDTO);
         return ResponseEntity.ok(updated);
@@ -65,7 +66,7 @@ public class TaskController {
     @PatchMapping("/{taskId}/complete")
     public ResponseEntity<TaskDTOResponse> completeTask(
             @PathVariable("taskId") @NotNull Long taskId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @AuthenticationPrincipal UserDetails userDetails
     ){
         TaskDTOResponse updated = taskService.completeTask(userDetails, taskId);
         return ResponseEntity.ok(updated);
@@ -74,7 +75,7 @@ public class TaskController {
     @PatchMapping("/{taskId}/activate")
     public ResponseEntity<TaskDTOResponse> activateTask(
             @PathVariable("taskId") @NotNull Long taskId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @AuthenticationPrincipal UserDetails userDetails
     ){
         TaskDTOResponse updated = taskService.activateTask(userDetails, taskId);
         return ResponseEntity.ok(updated);
@@ -83,7 +84,7 @@ public class TaskController {
     @DeleteMapping("/{taskId}")
     public ResponseEntity<Void> deleteTask(
             @PathVariable("taskId") @NotNull Long taskId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @AuthenticationPrincipal UserDetails userDetails
     ){
         taskService.deleteTask(userDetails, taskId);
         return ResponseEntity.noContent().build();
@@ -92,7 +93,7 @@ public class TaskController {
     @GetMapping("/{taskId}")
     public ResponseEntity<TaskDTOResponse> getTaskById(
             @PathVariable("taskId") @NotNull Long taskId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @AuthenticationPrincipal UserDetails userDetails
     ){
         TaskDTOResponse task = taskService.getTaskById(userDetails, taskId);
         return ResponseEntity.ok(task);
