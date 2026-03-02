@@ -63,7 +63,6 @@ public class RequestJwtTokenFilter extends OncePerRequestFilter {
         if (this.requestMatcher.matches(request)){
             System.out.println("Request matches for jwt: " + request);
             if (this.securityContextRepository.containsContext(request)){
-                // Пользователь должен быть авторизован с использованием PreAuthenticatedAuthenticationToken
                 var context = securityContextRepository.loadDeferredContext(request).get();
                 System.out.println("Authentication: " + context.getAuthentication());
                 if (context != null && !(context.getAuthentication() instanceof AnonymousAuthenticationToken)){

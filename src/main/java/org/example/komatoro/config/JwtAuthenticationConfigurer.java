@@ -5,6 +5,7 @@ import org.example.komatoro.security.jwt.JwtToken;
 import org.example.komatoro.security.jwt.factory.DefaultAccessTokenFactory;
 import org.example.komatoro.security.jwt.factory.DefaultRefreshTokenFactory;
 import org.example.komatoro.security.jwt.filter.JwtAuthenticationConverter;
+import org.example.komatoro.security.jwt.filter.RefreshJwtTokenFilter;
 import org.example.komatoro.security.jwt.filter.RequestJwtTokenFilter;
 import org.example.komatoro.security.jwt.service.JwtAuthenticationUserDetailsService;
 import org.springframework.http.HttpMethod;
@@ -76,6 +77,10 @@ public class JwtAuthenticationConfigurer
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
         });
 
+        var refreshJwtTokenFilter = new RefreshJwtTokenFilter();
+        refreshJwtTokenFilter.setAccessTokenFactory(this.accessTokenFactory);
+        refreshJwtTokenFilter.setAccessTokenSerializer(this.accessTokenSerializer);
+
         System.out.println("---------------------");
         System.out.println("Added configurer for jwt");
 
@@ -84,6 +89,7 @@ public class JwtAuthenticationConfigurer
 
         builder.addFilterBefore(requestJwtTokenFilter, ExceptionTranslationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, CsrfFilter.class)
+                .addFilterBefore(refreshJwtTokenFilter, ExceptionTranslationFilter.class)
                 .authenticationProvider(provider);
     }
 

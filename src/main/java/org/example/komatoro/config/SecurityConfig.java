@@ -68,10 +68,11 @@ public class SecurityConfig {
                 .csrf(CsrfConfigurer::disable)
                 .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/users/login", "/api/users/registration").permitAll()
+                        .requestMatchers("/api/users/login", "/api/users/registration", "/error").permitAll()
                         .requestMatchers("/login.html", "/home.html").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
-                        .anyRequest().hasAnyAuthority("ROEL_USER", "ROLE_ADMIN")
+                        .requestMatchers("/api/users/refresh/token").hasAuthority("ROLE_REFRESH")
+                        .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 )
 //                .formLogin(form -> form
 //                        .loginPage("/api/users/login")
