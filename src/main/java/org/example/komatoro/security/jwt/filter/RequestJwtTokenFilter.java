@@ -32,9 +32,9 @@ import java.util.function.Function;
 public class RequestJwtTokenFilter extends OncePerRequestFilter {
     @Getter
     @Setter
-//    private RequestMatcher requestMatcher = PathPatternRequestMatcher
-//            .withDefaults().matcher(HttpMethod.POST, "/api/users/login/token");
-    private RequestMatcher requestMatcher = new AntPathRequestMatcher("/api/users/login/token", HttpMethod.POST.name());
+    private RequestMatcher requestMatcher = PathPatternRequestMatcher
+            .withDefaults().matcher(HttpMethod.POST, "/api/users/login/token");
+
     private SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();
 
     // Написать компоненты над этими классами и тут внедрять через Autowired ?

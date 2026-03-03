@@ -10,11 +10,13 @@ import org.example.komatoro.security.jwt.JwtToken;
 import org.example.komatoro.security.jwt.TokenUser;
 import org.example.komatoro.security.jwt.TokensResponse;
 import org.example.komatoro.security.jwt.factory.DefaultAccessTokenFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -26,7 +28,8 @@ import java.util.function.Function;
 
 public class RefreshJwtTokenFilter extends OncePerRequestFilter {
     @Setter
-    private RequestMatcher requestMatcher = new AntPathRequestMatcher("/api/users/refresh/token", "POST");
+    private RequestMatcher requestMatcher = PathPatternRequestMatcher
+            .withDefaults().matcher(HttpMethod.POST, "/api/users/refresh/token");
 
     @Setter
     private SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();

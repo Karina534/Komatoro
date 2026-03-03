@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.Setter;
 import org.example.komatoro.security.jwt.TokenUser;
 import org.example.komatoro.security.jwt.TokensResponse;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.AccessDeniedException;
@@ -14,6 +15,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -23,7 +25,9 @@ import java.util.Date;
 
 public class JwtLogoutFilter extends OncePerRequestFilter {
     @Setter
-    private RequestMatcher requestMatcher = new AntPathRequestMatcher("/api/users/logout", "POST");
+    private RequestMatcher requestMatcher = PathPatternRequestMatcher
+            .withDefaults().matcher(HttpMethod.POST, "/api/users/logout");
+
     private SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();
     private final JdbcTemplate jdbcTemplate;
 
