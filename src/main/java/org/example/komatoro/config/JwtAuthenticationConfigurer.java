@@ -29,8 +29,6 @@ import java.util.function.Function;
 /**
  * Конфигуратор, который добавляет в цепочку фильтров фильтры отвечающие за работу с jwt токенами
  */
-//TODO: Найти альтернативу AbstractHttpConfigurer чтобы от не расширял SecurityConfigurerAdapter, из-за которого в
-// filterChain метод apply помечен как Deprecated
 public class JwtAuthenticationConfigurer
         extends AbstractHttpConfigurer<JwtAuthenticationConfigurer, HttpSecurity> {
 
