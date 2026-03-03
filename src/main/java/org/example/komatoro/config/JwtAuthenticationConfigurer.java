@@ -10,7 +10,6 @@ import org.example.komatoro.security.jwt.filter.RefreshJwtTokenFilter;
 import org.example.komatoro.security.jwt.filter.RequestJwtTokenFilter;
 import org.example.komatoro.security.jwt.service.JwtAuthenticationUserDetailsService;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,7 +20,7 @@ import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.authentication.AuthenticationFilter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.web.csrf.CsrfFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.util.Objects;
@@ -31,14 +30,13 @@ import java.util.function.Function;
  * Конфигуратор, который добавляет в цепочку фильтров фильтры отвечающие за работу с jwt токенами
  */
 //TODO: Найти альтернативу AbstractHttpConfigurer чтобы от не расширял SecurityConfigurerAdapter, из-за которого в
-// filterChain метод apply помечен как Depricated
+// filterChain метод apply помечен как Deprecated
 public class JwtAuthenticationConfigurer
         extends AbstractHttpConfigurer<JwtAuthenticationConfigurer, HttpSecurity> {
 
-//    private RequestMatcher requestMatcher = PathPatternRequestMatcher
-//            .withDefaults().matcher(HttpMethod.POST, "/api/users/login/token");
+    private RequestMatcher requestMatcher = PathPatternRequestMatcher
+            .withDefaults().matcher(HttpMethod.POST, "/api/users/login/token");
 
-    private RequestMatcher requestMatcher = new AntPathRequestMatcher("/api/users/login/token", HttpMethod.POST.name());
     private Function<Authentication, JwtToken> refreshTokenFactory = new DefaultRefreshTokenFactory();
 
     private Function<JwtToken, JwtToken> accessTokenFactory = new DefaultAccessTokenFactory();

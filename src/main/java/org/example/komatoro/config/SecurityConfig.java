@@ -89,8 +89,7 @@ public class SecurityConfig {
                         .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 )
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .apply(jwtAuthenticationConfigurer)
-                .and()
+                .with(jwtAuthenticationConfigurer, Customizer.withDefaults())
                 .build();
     }
 
