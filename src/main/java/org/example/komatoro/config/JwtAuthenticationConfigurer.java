@@ -5,11 +5,13 @@ import org.example.komatoro.security.jwt.JwtToken;
 import org.example.komatoro.security.jwt.factory.DefaultAccessTokenFactory;
 import org.example.komatoro.security.jwt.factory.DefaultRefreshTokenFactory;
 import org.example.komatoro.security.jwt.filter.JwtAuthenticationConverter;
+import org.example.komatoro.security.jwt.filter.JwtLogoutFilter;
 import org.example.komatoro.security.jwt.filter.RefreshJwtTokenFilter;
 import org.example.komatoro.security.jwt.filter.RequestJwtTokenFilter;
 import org.example.komatoro.security.jwt.service.JwtAuthenticationUserDetailsService;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -46,6 +48,8 @@ public class JwtAuthenticationConfigurer
     private Function<JwtToken, String> refreshTokenSerializer = Objects::toString;
     private Function<String, JwtToken> accessTokenStringDeserializer;
     private Function<String, JwtToken> refreshTokenStringDeserializer;
+    private JdbcTemplate jdbcTemplate;
+
     @Override
     public void init(HttpSecurity builder) throws Exception {
         var csrfConfigurer = builder.getConfigurer(CsrfConfigurer.class);
@@ -81,15 +85,18 @@ public class JwtAuthenticationConfigurer
         refreshJwtTokenFilter.setAccessTokenFactory(this.accessTokenFactory);
         refreshJwtTokenFilter.setAccessTokenSerializer(this.accessTokenSerializer);
 
+        var jwtLogoutFilter = new JwtLogoutFilter(this.jdbcTemplate);
+
         System.out.println("---------------------");
         System.out.println("Added configurer for jwt");
 
         var provider = new PreAuthenticatedAuthenticationProvider();
-        provider.setPreAuthenticatedUserDetailsService(new JwtAuthenticationUserDetailsService());
+        provider.setPreAuthenticatedUserDetailsService(new JwtAuthenticationUserDetailsService(this.jdbcTemplate));
 
         builder.addFilterBefore(requestJwtTokenFilter, ExceptionTranslationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, CsrfFilter.class)
                 .addFilterBefore(refreshJwtTokenFilter, ExceptionTranslationFilter.class)
+                .addFilterBefore(jwtLogoutFilter, ExceptionTranslationFilter.class)
                 .authenticationProvider(provider);
     }
 
@@ -125,6 +132,11 @@ public class JwtAuthenticationConfigurer
 
     public JwtAuthenticationConfigurer refreshTokenStringDeserializer(Function<String, JwtToken> refreshTokenStringDeserializer) {
         this.refreshTokenStringDeserializer = refreshTokenStringDeserializer;
+        return this;
+    }
+
+    public JwtAuthenticationConfigurer jdbcTemplate(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
         return this;
     }
 }

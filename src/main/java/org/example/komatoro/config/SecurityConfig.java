@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -43,7 +44,8 @@ public class SecurityConfig {
     @Bean
     public JwtAuthenticationConfigurer jwtConfigurer(
             @Value("${jwt.access-token-key}") String accessTokenKey,
-            @Value("${jwt.refresh-token-key}") String refreshTokenKey
+            @Value("${jwt.refresh-token-key}") String refreshTokenKey,
+            JdbcTemplate jdbcTemplate
     ) throws ParseException, JOSEException {
         return new JwtAuthenticationConfigurer()
                 .accessTokenSerializer(new AccessTokenSerializer(
@@ -57,7 +59,8 @@ public class SecurityConfig {
                 ))
                 .refreshTokenStringDeserializer(new JwtRefreshTokenJweStringDeserializer(
                         new DirectDecrypter(OctetSequenceKey.parse(refreshTokenKey))
-                ));
+                ))
+                .jdbcTemplate(jdbcTemplate);
     }
 
     @Bean
@@ -72,6 +75,7 @@ public class SecurityConfig {
                         .requestMatchers("/login.html", "/home.html").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/api/users/refresh/token").hasAuthority("ROLE_REFRESH")
+                        .requestMatchers("/api/users/logout").hasAuthority("ROLE_LOGOUT")
                         .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 )
 //                .formLogin(form -> form
