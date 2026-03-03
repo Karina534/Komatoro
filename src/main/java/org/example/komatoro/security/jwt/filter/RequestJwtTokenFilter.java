@@ -34,7 +34,6 @@ public class RequestJwtTokenFilter extends OncePerRequestFilter {
 
     private SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();
 
-    // Написать компоненты над этими классами и тут внедрять через Autowired ?
     @Getter
     @Setter
     private Function<Authentication, JwtToken> refreshTokenFactory = new DefaultRefreshTokenFactory();
@@ -56,13 +55,13 @@ public class RequestJwtTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         System.out.println("------------------------------------");
-        // Проверяем что этот запрос должен обрабатываться фильтром, и что пользователь авторизуется
         if (this.requestMatcher.matches(request)){
             System.out.println("Request matches for jwt: " + request);
             if (this.securityContextRepository.containsContext(request)){
                 var context = securityContextRepository.loadDeferredContext(request).get();
                 System.out.println("Authentication: " + context.getAuthentication());
                 if (context != null && !(context.getAuthentication() instanceof AnonymousAuthenticationToken)){
+
                     var authentication = context.getAuthentication();
                     System.out.println("Start making tokens");
                     var refreshToken = this.refreshTokenFactory.apply(authentication);

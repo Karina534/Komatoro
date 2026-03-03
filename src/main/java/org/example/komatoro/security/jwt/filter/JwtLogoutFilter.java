@@ -40,9 +40,12 @@ public class JwtLogoutFilter extends OncePerRequestFilter {
                 System.out.println("-------------");
                 System.out.println("Context aith: " + context.getAuthentication());
                 if (context != null && !(context.getAuthentication() instanceof AnonymousAuthenticationToken) &&
-                        context.getAuthentication().getPrincipal() instanceof TokenUser tokenUser &&
-                        context.getAuthentication().getAuthorities().contains(
-                                new SimpleGrantedAuthority("ROLE_LOGOUT"))){
+                        context.getAuthentication().getPrincipal() instanceof TokenUser tokenUser){
+
+                    if (!context.getAuthentication().getAuthorities().contains(
+                            new SimpleGrantedAuthority("ROLE_LOGOUT"))){
+                        throw new AccessDeniedException("Jwt TokenUser should be refresh token and has ROLE_LOGOUT");
+                    }
 
                     this.jdbcTemplate.update("insert into deactivated_tokens(id, keep_until) values(?, ?)",
                             tokenUser.getJwtToken().id(), Date.from(tokenUser.getJwtToken().expiresAt()));
@@ -52,7 +55,7 @@ public class JwtLogoutFilter extends OncePerRequestFilter {
                 }
             }
 
-            throw new AccessDeniedException("User must be authenticated with Jwt");
+            throw new AccessDeniedException("User must be authenticated with Jwt TokenUser");
         }
 
         filterChain.doFilter(request, response);

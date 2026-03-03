@@ -12,6 +12,7 @@ import org.example.komatoro.security.jwt.TokensResponse;
 import org.example.komatoro.security.jwt.factory.DefaultAccessTokenFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
@@ -21,7 +22,6 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -47,10 +47,15 @@ public class RefreshJwtTokenFilter extends OncePerRequestFilter {
         if (requestMatcher.matches(request)){
             if(securityContextRepository.containsContext(request)){
                 var context = securityContextRepository.loadDeferredContext(request).get();
+                System.out.println("Context auth: " + context.getAuthentication());
                 if (context != null && !(context.getAuthentication() instanceof AnonymousAuthenticationToken) &&
-                context.getAuthentication().getPrincipal() instanceof TokenUser tokenUser &&
-                context.getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("ROLE_REFRESH"))){
-                    var authentication = context.getAuthentication();
+                context.getAuthentication().getPrincipal() instanceof TokenUser tokenUser){
+
+                    if (!context.getAuthentication().getAuthorities().contains(
+                            new SimpleGrantedAuthority("ROLE_REFRESH"))){
+                        throw new AccessDeniedException("Jwt TokenUser should be refresh token and has ROLE_REFRESH");
+                    }
+
                     var accessToken = this.accessTokenFactory.apply(tokenUser.getJwtToken());
 
                     response.setStatus(HttpServletResponse.SC_OK);

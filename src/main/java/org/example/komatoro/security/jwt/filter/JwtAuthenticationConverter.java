@@ -2,10 +2,13 @@ package org.example.komatoro.security.jwt.filter;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.komatoro.security.jwt.JwtToken;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.util.StringUtils;
 
+import java.text.ParseException;
 import java.util.function.Function;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -21,17 +24,31 @@ public class JwtAuthenticationConverter implements AuthenticationConverter{
 
     @Override
     public Authentication convert(HttpServletRequest request) {
-        var authirization = request.getHeader(AUTHORIZATION);
-        if (authirization != null && authirization.startsWith("Bearer ")){
-            var token = authirization.substring(7);
-            var accessToken = this.accessTokenStringDeserializer.apply(token);
-            if (accessToken != null){
-                return new PreAuthenticatedAuthenticationToken(accessToken, token);
-            }
+        var header = request.getHeader(AUTHORIZATION);
 
-            var refreshToken = this.refreshTokenStringDeserializer.apply(token);
-            if (refreshToken != null){
-                return new PreAuthenticatedAuthenticationToken(refreshToken, token);
+        if (header == null){
+            return null;
+
+        } else {
+            header = header.trim();
+            if (!StringUtils.startsWithIgnoreCase(header, "Bearer")){
+                return null;
+
+            } else if (header.equalsIgnoreCase("Bearer")) {
+                throw new BadCredentialsException("Empty bearer authentication token");
+
+            } else {
+                var token = header.substring(7);
+
+                var accessToken = this.accessTokenStringDeserializer.apply(token);
+                if (accessToken != null){
+                    return new PreAuthenticatedAuthenticationToken(accessToken, token);
+                }
+
+                var refreshToken = this.refreshTokenStringDeserializer.apply(token);
+                if (refreshToken != null){
+                    return new PreAuthenticatedAuthenticationToken(refreshToken, token);
+                }
             }
         }
         return null;
