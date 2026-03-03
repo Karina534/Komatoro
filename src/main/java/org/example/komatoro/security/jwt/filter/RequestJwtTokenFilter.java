@@ -13,6 +13,7 @@ import org.example.komatoro.security.jwt.factory.DefaultAccessTokenFactory;
 import org.example.komatoro.security.jwt.factory.DefaultRefreshTokenFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
@@ -25,7 +26,6 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -81,6 +81,7 @@ public class RequestJwtTokenFilter extends OncePerRequestFilter {
                     response.setStatus(HttpServletResponse.SC_OK);
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     this.objectMapper.writeValue(response.getWriter(), tokensResponse);
+                    return;
                 }
             }
 

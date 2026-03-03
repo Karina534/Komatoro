@@ -57,6 +57,7 @@ public class RefreshJwtTokenFilter extends OncePerRequestFilter {
                             new TokensResponse((this.accessTokenSerializer.apply(accessToken)),
                             accessToken.expiresAt().toString(),
                             null, null));
+                    return;
                 }
             }
 

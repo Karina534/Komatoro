@@ -24,6 +24,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -70,28 +71,24 @@ public class SecurityConfig {
         return http
                 .csrf(CsrfConfigurer::disable)
                 .httpBasic(Customizer.withDefaults())
+//                .formLogin(form -> form
+//                                .loginPage("/api/users/login")
+//                                .loginProcessingUrl("/api/users/login/token")
+//                                .permitAll()
+//                                .usernameParameter("email")
+////                        .defaultSuccessUrl("/api/users/home")
+//                                .successHandler(jsonAuthenticationSuccessHandler())
+//                                .failureHandler(jsonAuthenticationFailureHandler())
+//                )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/users/login", "/api/users/registration", "/error").permitAll()
-                        .requestMatchers("/login.html", "/home.html").permitAll()
+                        .requestMatchers( "/home.html").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/api/users/refresh/token").hasAuthority("ROLE_REFRESH")
                         .requestMatchers("/api/users/logout").hasAuthority("ROLE_LOGOUT")
                         .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 )
-//                .formLogin(form -> form
-//                        .loginPage("/api/users/login")
-//                        .loginProcessingUrl("/api/users/login")
-//                        .permitAll()
-//                        .usernameParameter("email")
-//                        .defaultSuccessUrl("/api/users/home")
-////                        .successHandler(jsonAuthenticationSuccessHandler())
-//                        .failureHandler(jsonAuthenticationFailureHandler())
-//                )
-//                .logout(logout -> logout
-//                        .logoutUrl("/api/users/logout")
-//                        .logoutSuccessUrl("/api/users/login")
-//                        .permitAll()
-//                )
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .apply(jwtAuthenticationConfigurer)
                 .and()
                 .build();
