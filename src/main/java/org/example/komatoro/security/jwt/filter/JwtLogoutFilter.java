@@ -23,7 +23,7 @@ import java.util.Date;
 public class JwtLogoutFilter extends OncePerRequestFilter {
     @Setter
     private RequestMatcher requestMatcher = PathPatternRequestMatcher
-            .withDefaults().matcher(HttpMethod.POST, "/api/users/logout");
+            .withDefaults().matcher(HttpMethod.POST, "/auth/logout");
 
     private SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();
     private final JdbcTemplate jdbcTemplate;

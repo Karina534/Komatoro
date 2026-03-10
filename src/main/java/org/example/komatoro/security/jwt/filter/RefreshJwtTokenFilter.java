@@ -28,7 +28,7 @@ import java.util.function.Function;
 public class RefreshJwtTokenFilter extends OncePerRequestFilter {
     @Setter
     private RequestMatcher requestMatcher = PathPatternRequestMatcher
-            .withDefaults().matcher(HttpMethod.POST, "/api/users/refresh/token");
+            .withDefaults().matcher(HttpMethod.POST, "/auth/refresh/token");
 
     @Setter
     private SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();
