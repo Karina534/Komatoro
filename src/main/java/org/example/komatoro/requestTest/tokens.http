@@ -9,7 +9,7 @@ email=mail@mail.ru&password=1234567
 
 ###
 GET http://localhost:8080/api/tasks
-#Authorization: Bearer
+Authorization: Bearer eyJraWQiOiI1Y2E4M2IzNi04MjkxLTQ3Y2EtODI4NS01ZjBlNjg3YTAxYTYiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYWlsQG1haWwucnUiLCJleHAiOjE3NzMyNTcxNTYsImlhdCI6MTc3MzI1NjI1NiwianRpIjoiNWNhODNiMzYtODI5MS00N2NhLTgyODUtNWYwZTY4N2EwMWE2IiwiYXV0aG9yaXRpZXMiOlsiUk9MRV9VU0VSIl19.294hn7Ka2fr9eykalReP5adFdyzDbdFlhD-Nb_3_1_c
 
 ###
 GET http://localhost:8080/api/sessions/all

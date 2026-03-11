@@ -70,19 +70,21 @@ public class RequestJwtTokenFilter extends OncePerRequestFilter {
                     var refreshToken = this.refreshTokenFactory.apply(authentication);
                     var accessToken = this.accessTokenFactory.apply(refreshToken);
 
-                    var cookie = new Cookie("__Secure-refresh-token",
+                    var cookie = new Cookie("refresh-token",
                             this.refreshTokenSerializer.apply(refreshToken));
                     cookie.setHttpOnly(true);
                     cookie.setPath("/auth");
-                    cookie.setSecure(true);
+                    cookie.setSecure(false); //TODO: Поменять на true и добавить __Secure в начало названия куки
                     cookie.setMaxAge((int) ChronoUnit.SECONDS.between(Instant.now(),
                             refreshToken.expiresAt()));
 
                     var tokensResponse = new TokensResponse(
                             this.accessTokenSerializer.apply(accessToken),
                             accessToken.expiresAt().toString(),
-                            this.refreshTokenSerializer.apply(refreshToken),
-                            refreshToken.expiresAt().toString()
+                            null,
+                                null
+//                            this.refreshTokenSerializer.apply(refreshToken),
+//                            refreshToken.expiresAt().toString()
                     );
 
                     response.addCookie(cookie);

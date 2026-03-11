@@ -1,8 +1,6 @@
 package org.example.komatoro.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.KeyLengthException;
 import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jose.crypto.DirectEncrypter;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -18,21 +16,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
@@ -40,10 +33,7 @@ import org.springframework.security.web.servlet.util.matcher.PathPatternRequestM
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import java.io.PrintWriter;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @Configuration
@@ -87,11 +77,16 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain loginChain(HttpSecurity http, JwtAuthenticationConfigurer jwtAuthenticationConfigurer) throws Exception {
         return http.securityMatcher(LOGIN)
+                .csrf(csrf -> csrf.csrfTokenRepository(new CookieCsrfTokenRepository())
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        .sessionAuthenticationStrategy((authentication, request, response) -> {}))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .csrf(CsrfConfigurer::disable)
                 .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(authorize ->
-                        authorize.requestMatchers(LOGIN).authenticated())
+                        authorize.requestMatchers(LOGIN).permitAll()
+                        .requestMatchers("/api/users/registration", "/error").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_ADMIN"))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(basicAuthenticationEntryPoint))
                 .with(jwtAuthenticationConfigurer, Customizer.withDefaults())
                 .build();
@@ -106,9 +101,9 @@ public class SecurityConfig {
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
                         .sessionAuthenticationStrategy((authentication, request, response) -> {}))
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(authorize ->
-                        authorize.requestMatchers("/auth/refresh/token").hasAuthority("ROLE_REFRESH")
-                                .requestMatchers("/auth/logout").hasAuthority("ROLE_LOGOUT"))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/auth/refresh/token").hasAuthority("ROLE_REFRESH")
+                        .requestMatchers("/auth/logout").hasAuthority("ROLE_LOGOUT"))
                 .with(jwtAuthenticationConfigurer, Customizer.withDefaults())
                 .build();
     }
@@ -125,7 +120,6 @@ public class SecurityConfig {
                             .requestMatchers("/api/users/registration", "/error").permitAll()
                             .requestMatchers("/swagger-ui/**").permitAll()
                             .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_ADMIN"))
-                    .exceptionHandling(ex -> ex.authenticationEntryPoint(basicAuthenticationEntryPoint))
                     .with(jwtAuthenticationConfigurer, Customizer.withDefaults())
                     .build();
     }

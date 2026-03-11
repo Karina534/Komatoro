@@ -77,11 +77,11 @@ public class JwtAuthenticationConfigurer
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
         });
 
-        var refreshJwtTokenFilter = new RefreshJwtTokenFilter();
+        var refreshJwtTokenFilter = new RefreshJwtTokenFilter(this.refreshTokenStringDeserializer);
         refreshJwtTokenFilter.setAccessTokenFactory(this.accessTokenFactory);
         refreshJwtTokenFilter.setAccessTokenSerializer(this.accessTokenSerializer);
 
-        var jwtLogoutFilter = new JwtLogoutFilter(this.jdbcTemplate);
+        var jwtLogoutFilter = new JwtLogoutFilter(this.refreshTokenStringDeserializer, this.jdbcTemplate);
 
         System.out.println("---------------------");
         System.out.println("Added configurer for jwt");
