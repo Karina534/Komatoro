@@ -33,6 +33,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
@@ -57,6 +58,8 @@ public class SecurityConfig {
             PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/auth/refresh/token"),
             PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/auth/logout")
     );
+
+    private final BasicAuthenticationEntryPoint basicAuthenticationEntryPoint = new BasicAuthenticationEntryPoint();
 
     @Bean
     public JwtAuthenticationConfigurer jwtConfigurer(
@@ -88,7 +91,8 @@ public class SecurityConfig {
                 .csrf(CsrfConfigurer::disable)
                 .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(authorize ->
-                        authorize.requestMatchers(LOGIN).permitAll())
+                        authorize.requestMatchers(LOGIN).authenticated())
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(basicAuthenticationEntryPoint))
                 .with(jwtAuthenticationConfigurer, Customizer.withDefaults())
                 .build();
     }
@@ -103,8 +107,8 @@ public class SecurityConfig {
                         .sessionAuthenticationStrategy((authentication, request, response) -> {}))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize ->
-                        authorize.requestMatchers("auth/refresh/token").hasAuthority("ROLE_REFRESH")
-                                .requestMatchers("auth/logout").hasAuthority("ROLE_LOGOUT"))
+                        authorize.requestMatchers("/auth/refresh/token").hasAuthority("ROLE_REFRESH")
+                                .requestMatchers("/auth/logout").hasAuthority("ROLE_LOGOUT"))
                 .with(jwtAuthenticationConfigurer, Customizer.withDefaults())
                 .build();
     }
@@ -121,6 +125,7 @@ public class SecurityConfig {
                             .requestMatchers("/api/users/registration", "/error").permitAll()
                             .requestMatchers("/swagger-ui/**").permitAll()
                             .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_ADMIN"))
+                    .exceptionHandling(ex -> ex.authenticationEntryPoint(basicAuthenticationEntryPoint))
                     .with(jwtAuthenticationConfigurer, Customizer.withDefaults())
                     .build();
     }
