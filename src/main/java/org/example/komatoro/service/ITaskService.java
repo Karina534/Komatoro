@@ -18,5 +18,5 @@ public interface ITaskService {
     TaskDTOResponse activateTask(UserDetails userDetails, Long taskId);
     TaskDTOResponse completeTask(UserDetails userDetails, Long taskId);
     boolean isExist(Long taskId);
-    boolean isCompleted(Long taskId);
+    boolean isActive(Long taskId);
 }

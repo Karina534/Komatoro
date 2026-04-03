@@ -1,13 +1,9 @@
 package org.example.komatoro.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.example.komatoro.dto.TemporaryEntityDTO.UserDailyStatsDTO;
 import org.example.komatoro.dto.request.tomatoSession.*;
-import org.example.komatoro.dto.TemporaryEntityDTO.TomatoSessionDTO;
-import org.example.komatoro.dto.response.task.TaskDTOResponse;
 import org.example.komatoro.dto.response.tomatoSession.TomatoSessionDTOResponse;
 import org.example.komatoro.dto.response.tomatoSession.TomatoSessionRecommendationDTOResponse;
-import org.example.komatoro.dto.response.userSettings.UserDailyStatsDTOResponse;
 import org.example.komatoro.dto.response.userSettings.UserSettingsDTOResponse;
 import org.example.komatoro.exeption.*;
 import org.example.komatoro.model.*;
@@ -80,7 +76,7 @@ public class TomatoSessionService implements ITomatoSessionService {
             if (!taskService.isExist(sessionDTO.taskId())) {
                 throw new NotFoundException(sessionDTO.taskId(), Task.class);
             }
-            if (!taskService.isCompleted(sessionDTO.taskId())) {
+            if (!taskService.isActive(sessionDTO.taskId())) {
                 throw new TaskIsCompletedException(sessionDTO.taskId());
             }
         }

@@ -108,7 +108,7 @@ public class TaskService implements ITaskService{
     }
 
     @Override
-    public boolean isCompleted(Long taskId) {
+    public boolean isActive(Long taskId) {
         return taskRepository.findById(taskId)
                 .orElseThrow(() -> new NotFoundException(taskId, Task.class))
                 .isActive();
