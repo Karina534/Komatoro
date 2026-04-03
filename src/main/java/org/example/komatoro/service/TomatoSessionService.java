@@ -78,7 +78,7 @@ public class TomatoSessionService implements ITomatoSessionService {
         // Если томат запускается для задачи, нужно проверить, что она существует и она не завершена
         if (sessionDTO.taskId() != null) {
             if (!taskService.isExist(sessionDTO.taskId())) {
-                throw new TaskNotFoundException(sessionDTO.taskId());
+                throw new NotFoundException(sessionDTO.taskId(), Task.class);
             }
             if (!taskService.isCompleted(sessionDTO.taskId())) {
                 throw new TaskIsCompletedException(sessionDTO.taskId());
@@ -110,7 +110,7 @@ public class TomatoSessionService implements ITomatoSessionService {
 
         // Получаем сессию по id
         TomatoSession session = repository.findById(sessionId)
-                .orElseThrow(() -> new SessionNotFoundException(sessionId));
+                .orElseThrow(() -> new NotFoundException(sessionId, TomatoSession.class));
 
         // Проверяем, чтобы сессия, которую мы хотим остановить, была в статусе RUNNING
         if (session.getStatus() != TomatoStatus.RUNNING){
@@ -139,7 +139,7 @@ public class TomatoSessionService implements ITomatoSessionService {
 
         // Получаем сессию по id
         TomatoSession session = repository.findById(sessionId)
-                .orElseThrow(() -> new SessionNotFoundException(sessionId));
+                .orElseThrow(() -> new NotFoundException(sessionId, TomatoSession.class));
 
         // Проверяем, чтобы сессия, которую мы хотим остановить, была в статусе PAUSED
         if (session.getStatus() != TomatoStatus.PAUSED){
@@ -173,7 +173,7 @@ public class TomatoSessionService implements ITomatoSessionService {
 
         // Получаем сессию по id
         TomatoSession session = repository.findById(sessionId)
-                .orElseThrow(() -> new SessionNotFoundException(sessionId));
+                .orElseThrow(() -> new NotFoundException(sessionId, TomatoSession.class));
 
         // Проверяем, чтобы сессия, которую мы хотим увеличить, была в статусе RUNNING или PAUSED
         if (session.getStatus() != TomatoStatus.RUNNING && session.getStatus() != TomatoStatus.PAUSED){
@@ -207,7 +207,7 @@ public class TomatoSessionService implements ITomatoSessionService {
 
         // Получаем сессию по id
         TomatoSession session = repository.findById(tomatoSession.sessionId())
-                .orElseThrow(() -> new SessionNotFoundException(tomatoSession.sessionId()));
+                .orElseThrow(() -> new NotFoundException(tomatoSession.sessionId(), TomatoSession.class));
 
         // Проверяем, чтобы сессия, которую мы хотим остановить, была в статусе RUNNING или PAUSED
         if (session.getStatus() != TomatoStatus.RUNNING && session.getStatus() != TomatoStatus.PAUSED){
@@ -257,7 +257,7 @@ public class TomatoSessionService implements ITomatoSessionService {
         Long userId = this.getUserIdFromUserDetails(userDetails);
 
         TomatoSession session = repository.findById(sessionId)
-                .orElseThrow(() -> new SessionNotFoundException(sessionId));
+                .orElseThrow(() -> new NotFoundException(sessionId, TomatoSession.class));
 
         if(!session.getUser().getId().equals(userId)){
             throw new OwningDeniedException();
@@ -272,7 +272,7 @@ public class TomatoSessionService implements ITomatoSessionService {
 
         // Получаем сессию по id
         TomatoSession session = repository.findById(sessionId)
-                .orElseThrow(() -> new SessionNotFoundException(sessionId));
+                .orElseThrow(() -> new NotFoundException(sessionId, TomatoSession.class));
 
         // Проверяем что пользователь сессии совпадает с пользователем
         if(!session.getUser().getId().equals(userId)){
@@ -303,7 +303,7 @@ public class TomatoSessionService implements ITomatoSessionService {
         // Получаем пользователя и проверяем, что он существует
         Long userId = this.getUserIdFromUserDetails(userDetails);
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+                .orElseThrow(() -> new NotFoundException(userId, User.class));
 
         // Получаем настройки пользователя
         UserSettingsDTOResponse settings = userSettingsService.getUserSettingsByUserId(userId);
@@ -405,6 +405,6 @@ public class TomatoSessionService implements ITomatoSessionService {
 
     private User getUserFromUserDetails(UserDetails userDetails){
         return userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new UserNotFoundException(userDetails.getUsername()));
+                .orElseThrow(() -> new NotFoundException(userDetails.getUsername(), User.class));
     }
 }

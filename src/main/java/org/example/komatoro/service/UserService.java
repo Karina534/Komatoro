@@ -3,10 +3,10 @@ package org.example.komatoro.service;
 import lombok.extern.slf4j.Slf4j;
 import org.example.komatoro.dto.response.user.UserDTOResponse;
 import org.example.komatoro.dto.response.user.UserWithSettingsDtoResponse;
+import org.example.komatoro.exeption.NotFoundException;
 import org.example.komatoro.mapper.UserMapper;
 import org.example.komatoro.dto.request.user.UserCreateDTORequest;
 import org.example.komatoro.dto.request.userSettings.UserSettingsDTORequest;
-import org.example.komatoro.exeption.UserNotFoundException;
 import org.example.komatoro.model.User;
 import org.example.komatoro.model.UserDailyStats;
 import org.example.komatoro.model.UserSettings;
@@ -61,7 +61,7 @@ public class UserService implements IUserService{
         Long userId = this.getUserIdFromUserDetails(userDetails);
         log.debug("Try update user {} settings", userId);
         User user = repository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+                .orElseThrow(() -> new NotFoundException(userId, User.class));
 
         UserSettings userSettings = settingsService.updateUserSettings(userId, updateSettingsDTO);
         user.setSettings(userSettings);
@@ -75,7 +75,7 @@ public class UserService implements IUserService{
         Long userId = this.getUserIdFromUserDetails(userDetails);
         log.debug("Try to get user by id {}", userId);
         return userMapper.toResponse(repository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId)));
+                .orElseThrow(() -> new NotFoundException(userId, User.class)));
     }
 
     private Long getUserIdFromUserDetails(UserDetails userDetails){

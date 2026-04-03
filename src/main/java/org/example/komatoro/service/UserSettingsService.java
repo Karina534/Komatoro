@@ -1,19 +1,14 @@
 package org.example.komatoro.service;
 
 import jakarta.validation.Valid;
-import org.example.komatoro.dto.TemporaryEntityDTO.UserSettingsDTO;
 import org.example.komatoro.dto.request.userSettings.UserSettingsDTORequest;
 import org.example.komatoro.dto.response.userSettings.UserSettingsDTOResponse;
-import org.example.komatoro.exeption.OwningDeniedException;
-import org.example.komatoro.exeption.UserSettingsNotFoundException;
+import org.example.komatoro.exeption.NotFoundException;
 import org.example.komatoro.model.UserSettings;
 import org.example.komatoro.repository.IUserRepository;
 import org.example.komatoro.repository.IUserSettingsRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-import java.util.UUID;
 
 @Transactional
 @Service
@@ -30,7 +25,7 @@ public class UserSettingsService implements IUserSettingsService{
     @Override
     public UserSettingsDTOResponse getUserSettingsByUserId(Long userId) {
         UserSettings fromRepo = repository.findByUserId(userId)
-                .orElseThrow(() -> new UserSettingsNotFoundException(userId));
+                .orElseThrow(() -> new NotFoundException(userId, UserSettings.class));
 
         return this.convertToResponseDTO(fromRepo);
     }
@@ -46,7 +41,7 @@ public class UserSettingsService implements IUserSettingsService{
     @Override
     public UserSettings updateUserSettings(Long userId, @Valid UserSettingsDTORequest settings) {
         UserSettings fromRepo = repository.findByUserId(userId)
-                .orElseThrow(() -> new UserSettingsNotFoundException(userId));
+                .orElseThrow(() -> new NotFoundException(userId, UserSettings.class));
 
         if (settings.pomodoroMinutes() != null){
             fromRepo.setPomodoroMinutes(settings.pomodoroMinutes());
@@ -68,7 +63,7 @@ public class UserSettingsService implements IUserSettingsService{
     @Override
     public void deleteUserSettings(Long userId) {
         UserSettings fromRepo = repository.findByUserId(userId)
-                .orElseThrow(() -> new UserSettingsNotFoundException(userId));
+                .orElseThrow(() -> new NotFoundException(userId, UserSettings.class));
 
         repository.delete(fromRepo);
     }

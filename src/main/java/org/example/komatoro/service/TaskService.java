@@ -4,9 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.komatoro.dto.request.task.CreateTaskDTORequest;
 import org.example.komatoro.dto.request.task.UpdateTaskDTORequest;
 import org.example.komatoro.dto.response.task.TaskDTOResponse;
+import org.example.komatoro.exeption.NotFoundException;
 import org.example.komatoro.exeption.OwningDeniedException;
-import org.example.komatoro.exeption.TaskNotFoundException;
-import org.example.komatoro.exeption.UserNotFoundException;
 import org.example.komatoro.mapper.TaskMapper;
 import org.example.komatoro.model.Task;
 import org.example.komatoro.model.User;
@@ -51,7 +50,7 @@ public class TaskService implements ITaskService{
     @Override
     public TaskDTOResponse updateTask(UserDetails userDetails, Long taskId, UpdateTaskDTORequest taskDTO) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new TaskNotFoundException(taskId));
+                .orElseThrow(() -> new NotFoundException(taskId, Task.class));
 
         owningTaskCheck(task, userDetails);
 
@@ -76,7 +75,7 @@ public class TaskService implements ITaskService{
     @Override
     public void deleteTask(UserDetails userDetails, Long taskId) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new TaskNotFoundException(taskId));
+                .orElseThrow(() -> new NotFoundException(taskId, Task.class));
 
         owningTaskCheck(task, userDetails);
 
@@ -87,7 +86,7 @@ public class TaskService implements ITaskService{
     @Override
     public TaskDTOResponse getTaskById(UserDetails userDetails, Long taskId) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new TaskNotFoundException(taskId));
+                .orElseThrow(() -> new NotFoundException(taskId, Task.class));
 
         owningTaskCheck(task, userDetails);
 
@@ -111,7 +110,7 @@ public class TaskService implements ITaskService{
     @Override
     public boolean isCompleted(Long taskId) {
         return taskRepository.findById(taskId)
-                .orElseThrow(() -> new TaskNotFoundException(taskId))
+                .orElseThrow(() -> new NotFoundException(taskId, Task.class))
                 .isActive();
     }
 
@@ -153,6 +152,6 @@ public class TaskService implements ITaskService{
 
     private User getUserFromUserDetails(UserDetails userDetails){
         return userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new UserNotFoundException(userDetails.getUsername()));
+                .orElseThrow(() -> new NotFoundException(userDetails.getUsername(), User.class));
     }
 }

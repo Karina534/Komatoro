@@ -2,7 +2,7 @@ package org.example.komatoro.service;
 
 import jakarta.validation.constraints.NotNull;
 import org.example.komatoro.dto.response.userSettings.UserDailyStatsDTOResponse;
-import org.example.komatoro.exeption.UserDailyStatsNotFound;
+import org.example.komatoro.exeption.NotFoundException;
 import org.example.komatoro.model.UserDailyStats;
 import org.example.komatoro.repository.IUserDailyStatsRepository;
 import org.example.komatoro.repository.IUserRepository;
@@ -38,7 +38,7 @@ public class UserDailyStatsService implements IUserDailyStatsService{
             Integer addFocusMinutes) {
 
         UserDailyStats dailyStats = repository.findByUserIdAndDate(userId, date)
-                .orElseThrow(() -> new UserDailyStatsNotFound(userId, date));
+                .orElseThrow(() -> new NotFoundException(userId, date, UserDailyStats.class));
 
         if (addPomodoroCount != null) {
             if (addPomodoroCount < 0){
@@ -59,7 +59,7 @@ public class UserDailyStatsService implements IUserDailyStatsService{
     @Override
     public void deleteStats(Long userId, LocalDate date) {
         UserDailyStats dailyStats = repository.findByUserIdAndDate(userId, date)
-                .orElseThrow(() -> new UserDailyStatsNotFound(userId, date));
+                .orElseThrow(() -> new NotFoundException(userId, date, UserDailyStats.class));
 
         repository.delete(dailyStats);
     }
@@ -68,7 +68,7 @@ public class UserDailyStatsService implements IUserDailyStatsService{
     @Override
     public UserDailyStatsDTOResponse getUserDailyStats(Long userId, LocalDate date) {
         UserDailyStats dailyStats = repository.findByUserIdAndDate(userId, date)
-                .orElseThrow(() -> new UserDailyStatsNotFound(userId, date));
+                .orElseThrow(() -> new NotFoundException(userId, date, UserDailyStats.class));
 
         return this.convertToResponseDto(dailyStats);
     }
