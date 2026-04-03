@@ -13,6 +13,7 @@ import org.example.komatoro.model.User;
 import org.example.komatoro.repository.ITaskRepository;
 import org.example.komatoro.repository.IUserRepository;
 import org.example.komatoro.security.CustomUserDetails;
+import org.example.komatoro.security.jwt.TokenUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -37,15 +38,7 @@ public class TaskService implements ITaskService{
 
     @Override
     public TaskDTOResponse createTask(UserDetails userDetails, CreateTaskDTORequest taskDTO) {
-        Long userId;
-        if (userDetails instanceof CustomUserDetails) {
-            userId = ((CustomUserDetails) userDetails).getUserId();
-        } else {
-            log.warn("UserDetails is not an instance of CustomUserDetails. Unable to extract user information.");
-            throw new RuntimeException("Invalid user details. Not an instance of CustomUserDetails.");
-        }
-
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        User user = this.getUserFromUserDetails(userDetails);
 
         Task task = taskMapper.dtoToEntity(taskDTO);
         task.setUser(user);
@@ -104,13 +97,7 @@ public class TaskService implements ITaskService{
     @Transactional(readOnly = true)
     @Override
     public List<TaskDTOResponse> getAllTasksByUser(UserDetails userDetails) {
-        Long userId;
-        if (userDetails instanceof CustomUserDetails) {
-            userId = ((CustomUserDetails) userDetails).getUserId();
-        } else {
-            log.warn("UserDetails is not an instance of CustomUserDetails. Unable to extract user information.");
-            throw new RuntimeException("Invalid user details. Not an instance of CustomUserDetails.");
-        }
+        Long userId = this.getUserIdFromUserDetails(userDetails);
 
         return taskRepository.findByUserId(userId).stream().map(taskMapper::toResponse).toList();
     }
@@ -139,16 +126,33 @@ public class TaskService implements ITaskService{
     }
 
     private void owningTaskCheck(Task task, UserDetails userDetails){
-        Long userId;
-        if (userDetails instanceof CustomUserDetails) {
-            userId = ((CustomUserDetails) userDetails).getUserId();
-        } else {
-            log.warn("UserDetails is not an instance of CustomUserDetails. Unable to extract user information.");
-            throw new RuntimeException("Invalid user details. Not an instance of CustomUserDetails.");
-        }
+        Long userId = this.getUserIdFromUserDetails(userDetails);
 
         if (!task.getUser().getId().equals(userId)){
             throw new OwningDeniedException();
         }
+    }
+
+    private Long getUserIdFromUserDetails(UserDetails userDetails){
+        Long userId;
+        if (userDetails instanceof CustomUserDetails) {
+            userId = ((CustomUserDetails) userDetails).getUserId();
+
+        } else if (userDetails instanceof TokenUser){
+            User user = this.getUserFromUserDetails(userDetails);
+            userId = user.getId();
+
+        } else {
+            log.warn("UserDetails is not an instance of CustomUserDetails or TokenUser. " +
+                    "Unable to extract user information.");
+            throw new RuntimeException("Invalid user details. Not an instance of CustomUserDetails or TokenUser.");
+        }
+
+        return userId;
+    }
+
+    private User getUserFromUserDetails(UserDetails userDetails){
+        return userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new UserNotFoundException(userDetails.getUsername()));
     }
 }

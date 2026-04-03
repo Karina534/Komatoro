@@ -1,32 +1,39 @@
 package org.example.komatoro.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.crypto.DirectDecrypter;
+import com.nimbusds.jose.crypto.DirectEncrypter;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jose.jwk.OctetSequenceKey;
 import lombok.extern.slf4j.Slf4j;
+import org.example.komatoro.security.jwt.serializer.AccessTokenSerializer;
+import org.example.komatoro.security.jwt.serializer.JwtAccessTokenJwsStringDeserializer;
+import org.example.komatoro.security.jwt.serializer.JwtRefreshTokenJweStringDeserializer;
+import org.example.komatoro.security.jwt.serializer.RefreshTokenSerializer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Map;
+import java.text.ParseException;
 
 @Slf4j
 @Configuration
@@ -34,63 +41,87 @@ import java.util.Map;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    private static final RequestMatcher LOGIN = PathPatternRequestMatcher
+            .withDefaults().matcher(HttpMethod.POST, "/api/users/login/token");
+
+    private static final RequestMatcher REFRESH_AND_LOGOUT = new OrRequestMatcher(
+            PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/auth/refresh/token"),
+            PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/auth/logout")
+    );
+
+    private final BasicAuthenticationEntryPoint basicAuthenticationEntryPoint = new BasicAuthenticationEntryPoint();
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http
-                .csrf(CsrfConfigurer::disable)
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/users/login", "/api/users/registration").permitAll()
-                        .requestMatchers("/login.html", "/home.html").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                        .loginPage("/api/users/login")
-                        .loginProcessingUrl("/api/users/login")
-                        .permitAll()
-                        .usernameParameter("email")
-                        .defaultSuccessUrl("/api/users/home")
-                        .successHandler(jsonAuthenticationSuccessHandler())
-                        .failureHandler(jsonAuthenticationFailureHandler())
-                )
-                .logout(logout -> logout
-                        .logoutUrl("/api/users/logout")
-                        .logoutSuccessUrl("/api/users/login")
-                        .permitAll()
-                )
+    public JwtAuthenticationConfigurer jwtConfigurer(
+            @Value("${jwt.access-token-key}") String accessTokenKey,
+            @Value("${jwt.refresh-token-key}") String refreshTokenKey,
+            JdbcTemplate jdbcTemplate
+    ) throws ParseException, JOSEException {
+        return new JwtAuthenticationConfigurer()
+                .accessTokenSerializer(new AccessTokenSerializer(
+                        new MACSigner(OctetSequenceKey.parse(accessTokenKey))
+                ))
+                .refreshTokenSerializer(new RefreshTokenSerializer(
+                        new DirectEncrypter(OctetSequenceKey.parse(refreshTokenKey))
+                ))
+                .accessTokenStringDeserializer(new JwtAccessTokenJwsStringDeserializer(
+                        new MACVerifier(OctetSequenceKey.parse(accessTokenKey))
+                ))
+                .refreshTokenStringDeserializer(new JwtRefreshTokenJweStringDeserializer(
+                        new DirectDecrypter(OctetSequenceKey.parse(refreshTokenKey))
+                ))
+                .jdbcTemplate(jdbcTemplate);
+    }
+
+    @Bean
+    @Order(1)
+    public SecurityFilterChain loginChain(HttpSecurity http, JwtAuthenticationConfigurer jwtAuthenticationConfigurer) throws Exception {
+        return http.securityMatcher(LOGIN)
+                .csrf(csrf -> csrf.csrfTokenRepository(new CookieCsrfTokenRepository())
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        .sessionAuthenticationStrategy((authentication, request, response) -> {}))
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .httpBasic(Customizer.withDefaults())
+                .authorizeHttpRequests(authorize ->
+                        authorize.requestMatchers(LOGIN).permitAll()
+                        .requestMatchers("/api/users/registration", "/error").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_ADMIN"))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(basicAuthenticationEntryPoint))
+                .with(jwtAuthenticationConfigurer, Customizer.withDefaults())
                 .build();
     }
 
-    private AuthenticationFailureHandler jsonAuthenticationFailureHandler() {
-        return ((request, response, exception) -> {
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-
-            Map<String, Object> failureResponse = new HashMap<>();
-            failureResponse.put("status", HttpStatus.UNAUTHORIZED.value());
-            failureResponse.put("error", "Authentication failed");
-            failureResponse.put("message",  "Invalid email or password");
-
-            PrintWriter writer = response.getWriter();
-            writer.write(new ObjectMapper().writeValueAsString(failureResponse));
-            writer.flush();
-        });
+    @Bean
+    @Order(2)
+    public SecurityFilterChain refreshAndLogoutFilterChain(HttpSecurity http, JwtAuthenticationConfigurer jwtAuthenticationConfigurer) throws Exception {
+        return http.securityMatcher(REFRESH_AND_LOGOUT)
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(csrf -> csrf.csrfTokenRepository(new CookieCsrfTokenRepository())
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        .sessionAuthenticationStrategy((authentication, request, response) -> {}))
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/auth/refresh/token").hasAuthority("ROLE_REFRESH")
+                        .requestMatchers("/auth/logout").hasAuthority("ROLE_LOGOUT"))
+                .with(jwtAuthenticationConfigurer, Customizer.withDefaults())
+                .build();
     }
 
-    private AuthenticationSuccessHandler jsonAuthenticationSuccessHandler() {
-        return ((request, response, authentication) -> {
-            response.setStatus(HttpStatus.OK.value());
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-
-            Map<String, Object> successResponse = new HashMap<>();
-            successResponse.put("message", "Login success");
-            successResponse.put("email", authentication.getName());
-            successResponse.put("roles", authentication.getAuthorities());
-
-            PrintWriter writer = response.getWriter();
-            writer.write(new ObjectMapper().writeValueAsString(successResponse));
-            writer.flush();
-        });
+    @Bean
+    @Order(3)
+    public SecurityFilterChain defaultFilterChain(
+            HttpSecurity http, JwtAuthenticationConfigurer jwtAuthenticationConfigurer) throws Exception{
+            return http.securityMatcher("/**")
+                    .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .httpBasic(AbstractHttpConfigurer::disable)
+                    .authorizeHttpRequests(authorize -> authorize
+                            .requestMatchers("/api/users/registration", "/error").permitAll()
+                            .requestMatchers("/swagger-ui/**").permitAll()
+                            .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_ADMIN"))
+                    .with(jwtAuthenticationConfigurer, Customizer.withDefaults())
+                    .build();
     }
 
     @Bean

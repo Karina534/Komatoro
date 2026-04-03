@@ -15,6 +15,7 @@ import org.example.komatoro.repository.ITaskRepository;
 import org.example.komatoro.repository.ITomatoSessionRepository;
 import org.example.komatoro.repository.IUserRepository;
 import org.example.komatoro.security.CustomUserDetails;
+import org.example.komatoro.security.jwt.TokenUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -391,13 +392,19 @@ public class TomatoSessionService implements ITomatoSessionService {
     private Long getUserIdFromUserDetails(UserDetails userDetails){
         if (userDetails instanceof CustomUserDetails) {
             return ((CustomUserDetails) userDetails).getUserId();
+
+        } else if (userDetails instanceof TokenUser){
+            User user = this.getUserFromUserDetails(userDetails);
+            return user.getId();
+
         } else {
             log.warn("UserDetails is not an instance of CustomUserDetails. Unable to extract user information.");
             throw new RuntimeException("Invalid user details. Not an instance of CustomUserDetails.");
         }
     }
 
-    private void updateUserStats(TomatoSession tomatoSession){
-
+    private User getUserFromUserDetails(UserDetails userDetails){
+        return userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new UserNotFoundException(userDetails.getUsername()));
     }
 }
