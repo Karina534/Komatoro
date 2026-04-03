@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: Komatoro
+  datasource:
+    username: ${DB_USERNAME}
+    url: ${DB_URL}
+    password: ${DB_PASSWORD}
+  profiles:
+    active: dev
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8080
+
+debug: true
+
+logging:
+  level:
+    org.hibernate.sql: DEBUG
+    org.springframework.security: TRACE
+
+jwt:
+  access-token-key: '{"kty":"oct","k":"asfgMthWBltjKyJn791rD38LKqirGhI8dWYEh_hzrWI"}'
+  refresh-token-key: '{"kty":"oct","k":"HWS6epvQPr1R71__85JrI66ONrXJLQOnJT4vaRuOQjM"}'
