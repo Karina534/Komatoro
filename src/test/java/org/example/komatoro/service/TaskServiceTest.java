@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+//TODO: Добавить тесты если не CustomUser, а TokenUser
+//TODO: Заменить в названии Entity на DTO
 @ExtendWith(MockitoExtension.class)
 class TaskServiceTest {
 

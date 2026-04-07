@@ -12,6 +12,7 @@ import org.example.komatoro.model.UserDailyStats;
 import org.example.komatoro.model.UserSettings;
 import org.example.komatoro.repository.IUserRepository;
 import org.example.komatoro.security.CustomUserDetails;
+import org.example.komatoro.security.jwt.TokenUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -78,13 +79,23 @@ public class UserService implements IUserService{
                 .orElseThrow(() -> new NotFoundException(userId, User.class)));
     }
 
-    private Long getUserIdFromUserDetails(UserDetails userDetails){
+    public Long getUserIdFromUserDetails(UserDetails userDetails){
         if (userDetails instanceof CustomUserDetails) {
             return ((CustomUserDetails) userDetails).getUserId();
+
+        } else if (userDetails instanceof TokenUser){
+            User user = this.getUserFromUserDetails(userDetails);
+            return user.getId();
+
         } else {
             log.warn("UserDetails is not an instance of CustomUserDetails. Unable to extract user information.");
             throw new RuntimeException("Invalid user details. Not an instance of CustomUserDetails.");
         }
+    }
+
+    public User getUserFromUserDetails(UserDetails userDetails){
+        return repository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new NotFoundException(userDetails.getUsername(), User.class));
     }
 
     private UserDTOResponse convertToResponseDto(User user){

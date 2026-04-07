@@ -28,12 +28,14 @@ import java.util.*;
  * - При старте новой сессии прерывает (INTERRUPTED) предыдущую RUNNING.
  * - Сервер сам вычисляет actualMinutes и использует Instant.now().
  */
+//TODO: Вынести логику получения Long userId = this.getUserIdFromUserDetails(userDetails); в отдельный компонент
 @Slf4j
 @Transactional
 @Service
 public class TomatoSessionService implements ITomatoSessionService {
     private final ITomatoSessionRepository repository;
     private final IUserRepository userRepository;
+    private final UserService userService;
     private final ITaskRepository taskRepository;
     private final ITaskService taskService;
     private final IUserSettingsService userSettingsService;
@@ -41,12 +43,13 @@ public class TomatoSessionService implements ITomatoSessionService {
 
     @Autowired
     public TomatoSessionService(ITomatoSessionRepository repository,
-                                IUserRepository userRepository,
+                                IUserRepository userRepository, UserService userService,
                                 ITaskRepository taskRepository,
                                 ITaskService taskService,
                                 IUserSettingsService userSettingsService, IUserDailyStatsService userDailyStatsService) {
         this.repository = repository;
         this.userRepository = userRepository;
+        this.userService = userService;
         this.taskRepository = taskRepository;
         this.taskService = taskService;
         this.userSettingsService = userSettingsService;
@@ -64,7 +67,7 @@ public class TomatoSessionService implements ITomatoSessionService {
             UserDetails userDetails,
             StartTomatoSessionDTORequest sessionDTO) {
 
-        Long userId = this.getUserIdFromUserDetails(userDetails);
+        Long userId = userService.getUserIdFromUserDetails(userDetails);
 
         // Проверка, что у пользователя еще нет запущенных сессий
         if (this.isAnyRunningTomatoSession(userId)){
@@ -72,7 +75,7 @@ public class TomatoSessionService implements ITomatoSessionService {
         }
 
         // Если томат запускается для задачи, нужно проверить, что она существует и она не завершена
-        if (sessionDTO.taskId() != null) {
+        if (sessionDTO != null && sessionDTO.taskId() != null) {
             if (!taskService.isExist(sessionDTO.taskId())) {
                 throw new NotFoundException(sessionDTO.taskId(), Task.class);
             }
@@ -82,8 +85,12 @@ public class TomatoSessionService implements ITomatoSessionService {
         }
 
         // Время для таймера берется или из переданного dto сессии или из настроек пользователя pomodoroMinutes
-        Integer intendedMinutes = sessionDTO.intendedMinutes() == null ?
-                this.decideIntendedMinutes(userId) : sessionDTO.intendedMinutes();
+        Integer intendedMinutes;
+        if (sessionDTO != null && sessionDTO.intendedMinutes() != null){
+            intendedMinutes = sessionDTO.intendedMinutes();
+        } else {
+            intendedMinutes = this.decideIntendedMinutes(userId);
+        }
 
         TomatoSession session = new TomatoSession();
         session.setUser(userRepository.getReferenceById(userId));
@@ -102,7 +109,7 @@ public class TomatoSessionService implements ITomatoSessionService {
             UserDetails userDetails,
             Long sessionId) {
 
-        Long userId = this.getUserIdFromUserDetails(userDetails);
+        Long userId = userService.getUserIdFromUserDetails(userDetails);
 
         // Получаем сессию по id
         TomatoSession session = repository.findById(sessionId)
@@ -131,7 +138,7 @@ public class TomatoSessionService implements ITomatoSessionService {
 
     @Override
     public TomatoSessionDTOResponse resumeTomatoSession(UserDetails userDetails, Long sessionId) {
-        Long userId = this.getUserIdFromUserDetails(userDetails);
+        Long userId = userService.getUserIdFromUserDetails(userDetails);
 
         // Получаем сессию по id
         TomatoSession session = repository.findById(sessionId)
@@ -165,7 +172,7 @@ public class TomatoSessionService implements ITomatoSessionService {
             Long sessionId,
             ExtendTomatoSessionDTORequest tomatoSession) {
 
-        Long userId = this.getUserIdFromUserDetails(userDetails);
+        Long userId = userService.getUserIdFromUserDetails(userDetails);
 
         // Получаем сессию по id
         TomatoSession session = repository.findById(sessionId)
@@ -199,7 +206,7 @@ public class TomatoSessionService implements ITomatoSessionService {
             UserDetails userDetails,
             FinishTomatoSessionDTORequest tomatoSession) {
 
-        Long userId = this.getUserIdFromUserDetails(userDetails);
+        Long userId = userService.getUserIdFromUserDetails(userDetails);
 
         // Получаем сессию по id
         TomatoSession session = repository.findById(tomatoSession.sessionId())
@@ -215,7 +222,7 @@ public class TomatoSessionService implements ITomatoSessionService {
             throw new OwningDeniedException();
         }
 
-        // Если сессия была RUNNING и не была отдыхом, для нее нужно вычислить время фокусировки
+        // Если сессия была RUNNING, для нее нужно вычислить время фокусировки
         Integer activeFocusTime = session.getTotalActiveMinutes();
         if (session.getStatus() == TomatoStatus.RUNNING){
             activeFocusTime += this.countActiveFocusTime(session.getLastResumeTime());
@@ -228,8 +235,9 @@ public class TomatoSessionService implements ITomatoSessionService {
         TomatoSession saved = repository.save(session);
 
         // Если сессия была не для отдыха, нужно обновить статистику дня для пользователя
-        UserDailyStats dailyStats = userDailyStatsService.getUserDailyStatsOrCreate(userId, LocalDate.now());
         if (session.getType().equals(TomatoType.TIMER) || session.getType().equals(TomatoType.TASK)){
+            //TODO: Сделать метод как createIfNotExist
+            userDailyStatsService.getUserDailyStatsOrCreate(userId, LocalDate.now());
             userDailyStatsService.increaseStats(
                     userId,
                     LocalDate.now(),
@@ -243,14 +251,14 @@ public class TomatoSessionService implements ITomatoSessionService {
     @Transactional(readOnly = true)
     @Override
     public Optional<TomatoSessionDTOResponse> getCurrentRunningSession(UserDetails userDetails) {
-        Long userId = this.getUserIdFromUserDetails(userDetails);
+        Long userId = userService.getUserIdFromUserDetails(userDetails);
         return repository.findTomatoSessionByUserIdAndStatus(userId, TomatoStatus.RUNNING).map(this::createResponseDTO);
     }
 
     @Transactional(readOnly = true)
     @Override
     public TomatoSessionDTOResponse getSession(UserDetails userDetails, Long sessionId) {
-        Long userId = this.getUserIdFromUserDetails(userDetails);
+        Long userId = userService.getUserIdFromUserDetails(userDetails);
 
         TomatoSession session = repository.findById(sessionId)
                 .orElseThrow(() -> new NotFoundException(sessionId, TomatoSession.class));
@@ -264,7 +272,7 @@ public class TomatoSessionService implements ITomatoSessionService {
 
     @Override
     public void deleteTomatoSession(UserDetails userDetails, Long sessionId) {
-        Long userId = this.getUserIdFromUserDetails(userDetails);
+        Long userId = userService.getUserIdFromUserDetails(userDetails);
 
         // Получаем сессию по id
         TomatoSession session = repository.findById(sessionId)
@@ -288,18 +296,14 @@ public class TomatoSessionService implements ITomatoSessionService {
     @Transactional(readOnly = true)
     @Override
     public List<TomatoSessionDTOResponse> getAllUserSessions(UserDetails userDetails) {
-        Long userId = this.getUserIdFromUserDetails(userDetails);
+        Long userId = userService.getUserIdFromUserDetails(userDetails);
         return repository.findByUserId(userId).stream().map(this::createResponseDTO).toList();
     }
 
     @Override
     public TomatoSessionRecommendationDTOResponse recommendTomatoSession(UserDetails userDetails) {
-        System.out.println("---------------------------------------");
-        System.out.println("Start recommendation method in service");
         // Получаем пользователя и проверяем, что он существует
-        Long userId = this.getUserIdFromUserDetails(userDetails);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(userId, User.class));
+        Long userId = userService.getUserIdFromUserDetails(userDetails);
 
         // Получаем настройки пользователя
         UserSettingsDTOResponse settings = userSettingsService.getUserSettingsByUserId(userId);
@@ -309,8 +313,6 @@ public class TomatoSessionService implements ITomatoSessionService {
 
         // Если у пользователя еще не было рабочих сессий
         if (dailyStats.getPomodoroCount() == 0){
-            System.out.println("-----------------------------------------------");
-            System.out.println("User hadn't had sessions");
             return new TomatoSessionRecommendationDTOResponse(userId, TomatoType.TIMER);
         }
 
@@ -319,26 +321,16 @@ public class TomatoSessionService implements ITomatoSessionService {
                 userId,
                 List.of(TomatoStatus.COMPLETED, TomatoStatus.INTERRUPTED));
 
-        System.out.println("------------------------------------------------");
-        System.out.println("last tomato: " + lastTomato);
         if (lastTomato.isEmpty() || lastTomato.get().getType().equals(TomatoType.SHORT_BREAK) ||
                 lastTomato.get().getType().equals(TomatoType.LONG_BREAK)){
             return new TomatoSessionRecommendationDTOResponse(userId, TomatoType.TIMER);
         }
 
-        System.out.println("--------------------------------");
-        System.out.println("pomodoroCount: " + dailyStats.getPomodoroCount());
-        System.out.println("long break interval: " + settings.longBreakInterval());
-
         // Если дошли до этого, то до этого была рабочая сессия и нужно выбрать тип перерыва
         if (dailyStats.getPomodoroCount() % settings.longBreakInterval() == 0){
-            System.out.println("-----------------------------------------");
-            System.out.println("Recommend long break");
             // Возвращаем длинный отдых
             return new TomatoSessionRecommendationDTOResponse(userId, TomatoType.LONG_BREAK);
         } else {
-            System.out.println("-----------------------------------------");
-            System.out.println("Recommend short break");
             // Возвращаем короткий отдых
             return new TomatoSessionRecommendationDTOResponse(userId, TomatoType.SHORT_BREAK);
         }
@@ -383,24 +375,5 @@ public class TomatoSessionService implements ITomatoSessionService {
 
     private Integer countActiveFocusTime(Instant lastResumeTime){
         return Math.toIntExact(ChronoUnit.MINUTES.between(lastResumeTime, Instant.now()));
-    }
-
-    private Long getUserIdFromUserDetails(UserDetails userDetails){
-        if (userDetails instanceof CustomUserDetails) {
-            return ((CustomUserDetails) userDetails).getUserId();
-
-        } else if (userDetails instanceof TokenUser){
-            User user = this.getUserFromUserDetails(userDetails);
-            return user.getId();
-
-        } else {
-            log.warn("UserDetails is not an instance of CustomUserDetails. Unable to extract user information.");
-            throw new RuntimeException("Invalid user details. Not an instance of CustomUserDetails.");
-        }
-    }
-
-    private User getUserFromUserDetails(UserDetails userDetails){
-        return userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new NotFoundException(userDetails.getUsername(), User.class));
     }
 }
