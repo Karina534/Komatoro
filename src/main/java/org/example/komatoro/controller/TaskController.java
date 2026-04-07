@@ -25,11 +25,10 @@ import java.util.UUID;
 @Slf4j
 @Validated
 @RestController
-@RequestMapping("/api/tasks")
+@RequestMapping("/api/v1/tasks")
 public class TaskController {
     private final ITaskService taskService;
 
-    @Autowired
     public TaskController(ITaskService taskService) {
         this.taskService = taskService;
     }

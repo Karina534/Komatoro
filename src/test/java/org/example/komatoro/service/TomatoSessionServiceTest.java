@@ -1,6 +1,5 @@
 package org.example.komatoro.service;
 
-import org.aspectj.lang.annotation.Before;
 import org.example.komatoro.dto.request.tomatoSession.ExtendTomatoSessionDTORequest;
 import org.example.komatoro.dto.request.tomatoSession.FinishTomatoSessionDTORequest;
 import org.example.komatoro.dto.request.tomatoSession.StartTomatoSessionDTORequest;
@@ -21,13 +20,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.InstanceOfAssertFactories.OPTIONAL;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;

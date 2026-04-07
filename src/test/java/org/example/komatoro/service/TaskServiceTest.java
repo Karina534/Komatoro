@@ -32,7 +32,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 //TODO: Добавить тесты если не CustomUser, а TokenUser
-//TODO: Заменить в названии Entity на DTO
 @ExtendWith(MockitoExtension.class)
 class TaskServiceTest {
 
@@ -76,7 +75,7 @@ class TaskServiceTest {
     }
 
     @Test
-    void createTask_PayloadIsValid_ReturnValidResponseEntity() {
+    void createTask_PayloadIsValid_ReturnValidResponseDTO() {
         // given
         CreateTaskDTORequest taskDTORequest = new CreateTaskDTORequest("Title", "desc");
         Task mapped = new Task();
@@ -124,7 +123,7 @@ class TaskServiceTest {
     }
 
     @Test
-    void updateTask_PayloadIsValid_ReturnValidResponseEntity() {
+    void updateTask_PayloadIsValid_ReturnValidResponseDTO() {
         // given
         UpdateTaskDTORequest updateTaskDTORequest = new UpdateTaskDTORequest("New title", "new desc", false);
         when(this.taskRepository.findById(taskId)).thenReturn(Optional.ofNullable(testTask));
@@ -210,7 +209,7 @@ class TaskServiceTest {
     }
 
     @Test
-    void getTaskById_PayloadValid_ReturnValidResponseEntity() {
+    void getTaskById_PayloadValid_ReturnValidResponseDTO() {
         when(this.taskRepository.findById(taskId)).thenReturn(Optional.ofNullable(testTask));
         when(this.mapper.toResponse(testTask)).thenReturn(testTaskResponse);
 
@@ -237,7 +236,7 @@ class TaskServiceTest {
     }
 
     @Test
-    void getAllTasksByUser_PayloadValid_ReturnValidResponseEntity() {
+    void getAllTasksByUser_PayloadValid_ReturnValidResponseDTO() {
         Task task2 = new Task();
         task2.setUser(testUser);
         task2.setTitle("Task 2");

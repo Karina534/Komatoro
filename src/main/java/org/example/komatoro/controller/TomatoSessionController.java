@@ -24,11 +24,10 @@ import java.util.Optional;
 @Slf4j
 @Validated
 @RestController
-@RequestMapping("/api/sessions")
+@RequestMapping("/api/v1/sessions")
 public class TomatoSessionController {
     private final ITomatoSessionService service;
 
-    @Autowired
     public TomatoSessionController(ITomatoSessionService service) {
         this.service = service;
     }

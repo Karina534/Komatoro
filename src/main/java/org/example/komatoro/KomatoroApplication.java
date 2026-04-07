@@ -19,5 +19,3 @@ public class KomatoroApplication {
 //TODO: Добавить подтверждение почты
 //TODO: Добавить тестирвоание
 
-
-// Писать тесты
