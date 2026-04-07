@@ -3,6 +3,7 @@ package org.example.komatoro.service;
 import lombok.extern.slf4j.Slf4j;
 import org.example.komatoro.dto.response.user.UserDTOResponse;
 import org.example.komatoro.dto.response.user.UserWithSettingsDtoResponse;
+import org.example.komatoro.exeption.AccountWithEmailAlreadyExist;
 import org.example.komatoro.exeption.NotFoundException;
 import org.example.komatoro.mapper.UserMapper;
 import org.example.komatoro.dto.request.user.UserCreateDTORequest;
@@ -44,7 +45,7 @@ public class UserService implements IUserService{
 
         Optional<User> user = repository.findByEmail(userCreateDTO.email());
         if (user.isPresent()){
-            throw new RuntimeException("User with email " + userCreateDTO.email() + " already exist");
+            throw new AccountWithEmailAlreadyExist();
         }
 
         User createdUser = userMapper.dtoCreateToEntity(userCreateDTO);
