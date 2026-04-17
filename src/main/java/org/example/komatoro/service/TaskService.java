@@ -25,19 +25,18 @@ import java.util.List;
 @Service
 public class TaskService implements ITaskService{
     private final ITaskRepository taskRepository;
-    private final IUserRepository userRepository;
+    private final IUserService userService;
     private final TaskMapper taskMapper;
 
-    @Autowired
-    public TaskService(ITaskRepository taskRepository, IUserRepository userRepository, TaskMapper taskMapper) {
+    public TaskService(ITaskRepository taskRepository, IUserService userService, TaskMapper taskMapper) {
         this.taskRepository = taskRepository;
-        this.userRepository = userRepository;
+        this.userService = userService;
         this.taskMapper = taskMapper;
     }
 
     @Override
     public TaskDTOResponse createTask(UserDetails userDetails, CreateTaskDTORequest taskDTO) {
-        User user = this.getUserFromUserDetails(userDetails);
+        User user = userService.getUserFromUserDetails(userDetails);
 
         Task task = taskMapper.dtoToEntity(taskDTO);
         task.setUser(user);
@@ -96,7 +95,7 @@ public class TaskService implements ITaskService{
     @Transactional(readOnly = true)
     @Override
     public List<TaskDTOResponse> getAllTasksByUser(UserDetails userDetails) {
-        Long userId = this.getUserIdFromUserDetails(userDetails);
+        Long userId = userService.getUserIdFromUserDetails(userDetails);
 
         return taskRepository.findByUserId(userId).stream().map(taskMapper::toResponse).toList();
     }
@@ -114,44 +113,11 @@ public class TaskService implements ITaskService{
                 .isActive();
     }
 
-    private TaskDTOResponse convertResponseDto(Task task){
-        return new TaskDTOResponse(
-                task.getId(),
-                task.getTitle(),
-                task.getDescription(),
-                task.isActive(),
-                task.getCreatedAt()
-        );
-    }
-
     private void owningTaskCheck(Task task, UserDetails userDetails){
-        Long userId = this.getUserIdFromUserDetails(userDetails);
+        Long userId = userService.getUserIdFromUserDetails(userDetails);
 
         if (!task.getUser().getId().equals(userId)){
             throw new OwningDeniedException();
         }
-    }
-
-    private Long getUserIdFromUserDetails(UserDetails userDetails){
-        Long userId;
-        if (userDetails instanceof CustomUserDetails) {
-            userId = ((CustomUserDetails) userDetails).getUserId();
-
-        } else if (userDetails instanceof TokenUser){
-            User user = this.getUserFromUserDetails(userDetails);
-            userId = user.getId();
-
-        } else {
-            log.warn("UserDetails is not an instance of CustomUserDetails or TokenUser. " +
-                    "Unable to extract user information.");
-            throw new RuntimeException("Invalid user details. Not an instance of CustomUserDetails or TokenUser.");
-        }
-
-        return userId;
-    }
-
-    private User getUserFromUserDetails(UserDetails userDetails){
-        return userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new NotFoundException(userDetails.getUsername(), User.class));
     }
 }

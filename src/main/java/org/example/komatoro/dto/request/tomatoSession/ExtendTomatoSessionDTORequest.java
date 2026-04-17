@@ -7,11 +7,9 @@ import java.util.UUID;
 
 /**
  * DTO для увелечения времени томата
- * @param sessionId
  * @param addMinutes
  */
 public record ExtendTomatoSessionDTORequest(
-        Long sessionId,
         @Min(value = 1)
         Integer addMinutes
 ) {

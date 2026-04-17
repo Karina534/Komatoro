@@ -7,10 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.komatoro.dto.request.tomatoSession.*;
 import org.example.komatoro.dto.response.tomatoSession.TomatoSessionDTOResponse;
 import org.example.komatoro.dto.response.tomatoSession.TomatoSessionRecommendationDTOResponse;
-import org.example.komatoro.model.UserSettings;
-import org.example.komatoro.security.CustomUserDetails;
 import org.example.komatoro.service.ITomatoSessionService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -38,17 +35,17 @@ public class TomatoSessionController {
                     "starts a new one"
     )
     @PostMapping("/start")
-    public ResponseEntity<TomatoSessionDTOResponse> startSession(
-            @Valid @RequestBody StartTomatoSessionDTORequest tomatoSessionDTO,
+    public ResponseEntity<?> startTomatoSession(
+            @Valid @RequestBody StartTomatoSessionDTORequest startTomatoSessionDTORequest,
             @AuthenticationPrincipal UserDetails userDetails
             ){
-        TomatoSessionDTOResponse createdSession = service.startTomatoSession(userDetails, tomatoSessionDTO);
+        TomatoSessionDTOResponse createdSession = service.startTomatoSession(userDetails, startTomatoSessionDTORequest);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(createdSession);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<TomatoSessionDTOResponse>> getAllUserSessions(
+    public ResponseEntity<?> getAllUserTomatoSessions(
             @AuthenticationPrincipal UserDetails userDetails
     ){
         List<TomatoSessionDTOResponse> allSessions = service.getAllUserSessions(userDetails);
@@ -57,19 +54,19 @@ public class TomatoSessionController {
 
     @Operation(summary = "Get current active tomato session for a user otherwise empty response")
     @GetMapping("/active")
-    public ResponseEntity<TomatoSessionDTOResponse> getCurrentActiveSessionByUser(
+    public ResponseEntity<?> getCurrentActiveSessionByUser(
             @AuthenticationPrincipal UserDetails userDetails
     ){
-        Optional<TomatoSessionDTOResponse> sessionDTO = service.getCurrentRunningSession(userDetails);
+        Optional<TomatoSessionDTOResponse> currentRunningSession = service.getCurrentRunningSession(userDetails);
 
-        if (sessionDTO.isPresent()){
-            return ResponseEntity.ok(sessionDTO.get());
+        if (currentRunningSession.isPresent()){
+            return ResponseEntity.ok(currentRunningSession.get());
         }
         return ResponseEntity.notFound().build();
     }
 
     @GetMapping("/{sessionId}")
-    public ResponseEntity<TomatoSessionDTOResponse> getSession(
+    public ResponseEntity<?> getSessionById(
             @PathVariable("sessionId") @NotNull Long sessionId,
             @AuthenticationPrincipal UserDetails userDetails
     ){
@@ -78,7 +75,7 @@ public class TomatoSessionController {
     }
 
     @PostMapping("/{sessionId}/pause")
-    public ResponseEntity<TomatoSessionDTOResponse> pauseSession(
+    public ResponseEntity<?> pauseSession(
             @PathVariable("sessionId") @NotNull Long sessionId,
             @AuthenticationPrincipal UserDetails userDetails
             ){
@@ -88,7 +85,7 @@ public class TomatoSessionController {
     }
 
     @PostMapping("/{sessionId}/resume")
-    public ResponseEntity<TomatoSessionDTOResponse> resumeSession(
+    public ResponseEntity<?> resumeSession(
             @PathVariable("sessionId") @NotNull Long sessionId,
             @AuthenticationPrincipal UserDetails userDetails
     ){
@@ -99,28 +96,29 @@ public class TomatoSessionController {
 
     @Operation(summary = "Extend a duration of tomato session by 1 minute")
     @PatchMapping("/{sessionId}/extend")
-    public ResponseEntity<TomatoSessionDTOResponse> extendTomatoSession(
+    public ResponseEntity<?> extendTomatoSession(
             @PathVariable("sessionId") @NotNull Long sessionId,
-            @RequestBody @Valid ExtendTomatoSessionDTORequest extendTomato,
+            @RequestBody @Valid ExtendTomatoSessionDTORequest extendTomatoSessionDTO,
             @AuthenticationPrincipal UserDetails userDetails
             ){
-        TomatoSessionDTOResponse sessionDTO = service.extendTomatoSession(userDetails, sessionId, extendTomato);
+        TomatoSessionDTOResponse sessionDTO = service.extendTomatoSession(userDetails, sessionId,
+                extendTomatoSessionDTO);
         return ResponseEntity.ok(sessionDTO);
     }
 
     @PostMapping("/{sessionId}/finish")
-    public ResponseEntity<Void> finishSession(
+    public ResponseEntity<?> finishSession(
             @PathVariable("sessionId") @NotNull Long sessionId,
             @RequestBody @Valid FinishTomatoSessionDTORequest finishTomato,
             @AuthenticationPrincipal UserDetails userDetails
             ){
-        service.finishTomatoSession(userDetails, finishTomato);
+        service.finishTomatoSession(userDetails, sessionId, finishTomato);
 
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{sessionId}")
-    public ResponseEntity<Void> deleteSession(
+    public ResponseEntity<?> deleteSession(
             @PathVariable("sessionId") @NotNull Long sessionId,
             @AuthenticationPrincipal UserDetails userDetails
     ){
@@ -130,10 +128,10 @@ public class TomatoSessionController {
     }
 
     @GetMapping("/recommendation")
-    public ResponseEntity<TomatoSessionRecommendationDTOResponse> getSessionRecommendation(
+    public ResponseEntity<?> getSessionTypeRecommendation(
             @AuthenticationPrincipal UserDetails userDetails
             ){
-        TomatoSessionRecommendationDTOResponse recommendation = service.recommendTomatoSession(userDetails);
+        TomatoSessionRecommendationDTOResponse recommendation = service.recommendTomatoSessionType(userDetails);
         return ResponseEntity.ok(recommendation);
     }
 }

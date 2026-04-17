@@ -30,7 +30,7 @@ public class UserController {
     }
 
     @PostMapping("/registration")
-    public ResponseEntity<UserDTOResponse> registration(
+    public ResponseEntity<?> registration(
             @RequestBody @Valid  UserCreateDTORequest createDTORequest
     ){
 

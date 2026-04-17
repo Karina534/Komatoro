@@ -12,4 +12,6 @@ public interface IUserService {
     UserDTOResponse registration(UserCreateDTORequest userCreateDTO);
     UserWithSettingsDtoResponse updateSettings(UserDetails userDetails, UserSettingsDTORequest updateSettingsDTO);
     UserDTOResponse getById(UserDetails userDetails);
+    Long getUserIdFromUserDetails(UserDetails userDetails);
+    User getUserFromUserDetails(UserDetails userDetails);
 }

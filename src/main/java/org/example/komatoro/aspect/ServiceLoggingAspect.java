@@ -35,6 +35,6 @@ public class ServiceLoggingAspect {
     @AfterThrowing("loggingServiceMethodPointcut()")
     public void loggingAfterThrowingServiceMethod(JoinPoint joinPoint){
         String methodName = joinPoint.getSignature().toShortString();
-        log.info("Unsuccessfully ended method: {}", methodName);
+        log.error("Unsuccessfully ended method: {}", methodName);
     }
 }

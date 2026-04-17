@@ -35,7 +35,7 @@ public class TaskController {
 
     @Operation(summary = "Create a new task for a user")
     @PostMapping
-    public ResponseEntity<TaskDTOResponse> createTask(
+    public ResponseEntity<?> createTask(
             @Valid @RequestBody CreateTaskDTORequest createTaskDTO,
             @AuthenticationPrincipal UserDetails userDetails
             ){
@@ -45,7 +45,7 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TaskDTOResponse>> getAllTasksByUser(
+    public ResponseEntity<?> getAllTasksByUser(
                 @AuthenticationPrincipal UserDetails userDetails
     ){
         List<TaskDTOResponse> list = taskService.getAllTasksByUser(userDetails);
@@ -53,7 +53,7 @@ public class TaskController {
     }
 
     @PutMapping("/{taskId}")
-    public ResponseEntity<TaskDTOResponse> updateTask(
+    public ResponseEntity<?> updateTask(
             @PathVariable("taskId") @NotNull Long taskId,
             @Valid @RequestBody UpdateTaskDTORequest updateTaskDTO,
             @AuthenticationPrincipal UserDetails userDetails
@@ -63,7 +63,7 @@ public class TaskController {
     }
 
     @PatchMapping("/{taskId}/complete")
-    public ResponseEntity<TaskDTOResponse> completeTask(
+    public ResponseEntity<?> completeTask(
             @PathVariable("taskId") @NotNull Long taskId,
             @AuthenticationPrincipal UserDetails userDetails
     ){
@@ -72,7 +72,7 @@ public class TaskController {
     }
 
     @PatchMapping("/{taskId}/activate")
-    public ResponseEntity<TaskDTOResponse> activateTask(
+    public ResponseEntity<?> activateTask(
             @PathVariable("taskId") @NotNull Long taskId,
             @AuthenticationPrincipal UserDetails userDetails
     ){
@@ -81,7 +81,7 @@ public class TaskController {
     }
 
     @DeleteMapping("/{taskId}")
-    public ResponseEntity<Void> deleteTask(
+    public ResponseEntity<?> deleteTask(
             @PathVariable("taskId") @NotNull Long taskId,
             @AuthenticationPrincipal UserDetails userDetails
     ){
@@ -90,7 +90,7 @@ public class TaskController {
     }
 
     @GetMapping("/{taskId}")
-    public ResponseEntity<TaskDTOResponse> getTaskById(
+    public ResponseEntity<?> getTaskById(
             @PathVariable("taskId") @NotNull Long taskId,
             @AuthenticationPrincipal UserDetails userDetails
     ){

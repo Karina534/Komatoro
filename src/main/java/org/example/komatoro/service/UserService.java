@@ -80,6 +80,7 @@ public class UserService implements IUserService{
                 .orElseThrow(() -> new NotFoundException(userId, User.class)));
     }
 
+    @Override
     public Long getUserIdFromUserDetails(UserDetails userDetails){
         if (userDetails instanceof CustomUserDetails) {
             return ((CustomUserDetails) userDetails).getUserId();
@@ -94,18 +95,9 @@ public class UserService implements IUserService{
         }
     }
 
+    @Override
     public User getUserFromUserDetails(UserDetails userDetails){
         return repository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new NotFoundException(userDetails.getUsername(), User.class));
-    }
-
-    private UserDTOResponse convertToResponseDto(User user){
-        return new UserDTOResponse(
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getRole(),
-                user.getCreatedAt(),
-                user.isVerified());
     }
 }

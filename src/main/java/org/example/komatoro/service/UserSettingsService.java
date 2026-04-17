@@ -56,8 +56,7 @@ public class UserSettingsService implements IUserSettingsService{
             fromRepo.setLongBreakInterval(settings.longBreakInterval());
         }
 
-        UserSettings saved = repository.save(fromRepo);
-        return saved;
+        return repository.save(fromRepo);
     }
 
     @Override

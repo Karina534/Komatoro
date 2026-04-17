@@ -46,6 +46,7 @@ public class UserDailyStatsService implements IUserDailyStatsService{
             }
             dailyStats.setPomodoroCount(dailyStats.getPomodoroCount() + addPomodoroCount);
         }
+
         if (addFocusMinutes != null){
             if (addFocusMinutes < 0){
                 throw new IllegalArgumentException("Pomodoro count increment must be positive");

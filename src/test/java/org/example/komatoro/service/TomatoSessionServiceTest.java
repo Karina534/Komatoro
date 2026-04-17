@@ -377,7 +377,7 @@ class TomatoSessionServiceTest {
     @DisplayName("Должен успешно увеличить длительность сессии по умолчанию на 1 для запущенной сессии")
     void extendTomatoSession_PayloadValidDefault_ReturnResponseDTO() {
         testSession.setId(SESSION_ID);
-        ExtendTomatoSessionDTORequest request = new ExtendTomatoSessionDTORequest(null, null);
+        ExtendTomatoSessionDTORequest request = new ExtendTomatoSessionDTORequest(null);
         doReturn(USER_ID).when(this.userService).getUserIdFromUserDetails(testUserDetails);
         doReturn(Optional.of(testSession)).when(this.repository).findById(SESSION_ID);
         when(this.repository.save(any(TomatoSession.class))).thenAnswer(inv -> {
@@ -402,7 +402,8 @@ class TomatoSessionServiceTest {
         testSession.setId(SESSION_ID);
         testSession.setStatus(TomatoStatus.PAUSED);
         int addMin = 4;
-        ExtendTomatoSessionDTORequest request = new ExtendTomatoSessionDTORequest(null, addMin);
+        System.out.println("Intended minutes " + testSession.getIntendedMinutes());
+        ExtendTomatoSessionDTORequest request = new ExtendTomatoSessionDTORequest(addMin);
         doReturn(USER_ID).when(this.userService).getUserIdFromUserDetails(testUserDetails);
         doReturn(Optional.of(testSession)).when(this.repository).findById(SESSION_ID);
         when(this.repository.save(any(TomatoSession.class))).thenAnswer(inv -> {
@@ -412,6 +413,7 @@ class TomatoSessionServiceTest {
         TomatoSessionDTOResponse dtoResponse = this.tomatoSessionService
                 .extendTomatoSession(testUserDetails, SESSION_ID, request);
 
+        System.out.println("Intended minutes " + testSession.getIntendedMinutes());
         assertNotNull(dtoResponse);
         assertThat(dtoResponse.status()).isEqualTo(TomatoStatus.PAUSED);
         assertThat(dtoResponse.intendedMinutes()).isEqualTo(baseIntendedMinuted+addMin);
@@ -424,7 +426,7 @@ class TomatoSessionServiceTest {
     @Test
     @DisplayName("Должен выбросить исключение NotFoundException для несуществующей сессии")
     void extendTomatoSession_SessionNotExist_ThrowNotFoundException() {
-        ExtendTomatoSessionDTORequest request = new ExtendTomatoSessionDTORequest(null, null);
+        ExtendTomatoSessionDTORequest request = new ExtendTomatoSessionDTORequest(null);
         doReturn(USER_ID).when(this.userService).getUserIdFromUserDetails(testUserDetails);
         doReturn(Optional.empty()).when(this.repository).findById(SESSION_ID);
 
@@ -439,7 +441,7 @@ class TomatoSessionServiceTest {
     @Test
     @DisplayName("Должен выбросить исключение InvalidSessionStatusException при попытке увеличить не запущенную или остановленную сессию")
     void extendTomatoSession_InvalidStatus_ThrowInvalidSessionStatusException() {
-        ExtendTomatoSessionDTORequest request = new ExtendTomatoSessionDTORequest(null, null);
+        ExtendTomatoSessionDTORequest request = new ExtendTomatoSessionDTORequest(null);
         testSession.setStatus(TomatoStatus.INTERRUPTED);
         testSession.setId(SESSION_ID);
         doReturn(USER_ID).when(this.userService).getUserIdFromUserDetails(testUserDetails);
@@ -456,7 +458,7 @@ class TomatoSessionServiceTest {
     @Test
     @DisplayName("Должен выбросить исключение OwningDeniedException если сессия не принадлежит переданному пользователю")
     void extendTomatoSession_WrongUser_ThrowOwningDeniedException(){
-        ExtendTomatoSessionDTORequest request = new ExtendTomatoSessionDTORequest(null, null);
+        ExtendTomatoSessionDTORequest request = new ExtendTomatoSessionDTORequest(null);
         testSession.setStatus(TomatoStatus.PAUSED);
         doReturn(USER_ID + 4).when(this.userService).getUserIdFromUserDetails(testUserDetails);
         doReturn(Optional.of(testSession)).when(this.repository).findById(SESSION_ID);
@@ -472,7 +474,7 @@ class TomatoSessionServiceTest {
     @Test
     @DisplayName("Должен выбросить исключение SessionParametrValidationException если сессия превысит 480 минут после увеличения")
     void extendTomatoSession_WrongUser_ThrowSessionParametrValidationException(){
-        ExtendTomatoSessionDTORequest request = new ExtendTomatoSessionDTORequest(null, 480);
+        ExtendTomatoSessionDTORequest request = new ExtendTomatoSessionDTORequest(480);
         testSession.setStatus(TomatoStatus.PAUSED);
         doReturn(USER_ID).when(this.userService).getUserIdFromUserDetails(testUserDetails);
         doReturn(Optional.of(testSession)).when(this.repository).findById(SESSION_ID);
@@ -491,7 +493,7 @@ class TomatoSessionServiceTest {
         testSession.setLastResumeTime(Instant.now().minusSeconds(120));
         testSession.setTotalActiveMinutes(2);
         UserDailyStats testDailyStats = new UserDailyStats(testUser);
-        FinishTomatoSessionDTORequest request = new FinishTomatoSessionDTORequest(SESSION_ID, TomatoStatus.COMPLETED);
+        FinishTomatoSessionDTORequest request = new FinishTomatoSessionDTORequest(TomatoStatus.COMPLETED);
         LocalDate now = LocalDate.now();
 
         doReturn(USER_ID).when(this.userService).getUserIdFromUserDetails(testUserDetails);
@@ -501,7 +503,8 @@ class TomatoSessionServiceTest {
             return inv.getArgument(0);
         });
 
-        TomatoSessionDTOResponse dtoResponse = this.tomatoSessionService.finishTomatoSession(testUserDetails, request);
+        TomatoSessionDTOResponse dtoResponse = this.tomatoSessionService
+                .finishTomatoSession(testUserDetails, SESSION_ID, request);
 
         assertNotNull(dtoResponse);
         assertThat(dtoResponse.status()).isEqualTo(TomatoStatus.COMPLETED);
@@ -522,7 +525,7 @@ class TomatoSessionServiceTest {
         testSession.setLastResumeTime(Instant.now().minusSeconds(120));
         testSession.setTotalActiveMinutes(2);
         UserDailyStats testDailyStats = new UserDailyStats(testUser);
-        FinishTomatoSessionDTORequest request = new FinishTomatoSessionDTORequest(SESSION_ID, TomatoStatus.INTERRUPTED);
+        FinishTomatoSessionDTORequest request = new FinishTomatoSessionDTORequest(TomatoStatus.INTERRUPTED);
         LocalDate now = LocalDate.now();
 
         doReturn(USER_ID).when(this.userService).getUserIdFromUserDetails(testUserDetails);
@@ -532,7 +535,8 @@ class TomatoSessionServiceTest {
             return inv.getArgument(0);
         });
 
-        TomatoSessionDTOResponse dtoResponse = this.tomatoSessionService.finishTomatoSession(testUserDetails, request);
+        TomatoSessionDTOResponse dtoResponse = this.tomatoSessionService
+                .finishTomatoSession(testUserDetails, SESSION_ID, request);
 
         assertNotNull(dtoResponse);
         assertThat(dtoResponse.status()).isEqualTo(TomatoStatus.INTERRUPTED);
@@ -553,7 +557,7 @@ class TomatoSessionServiceTest {
         testSession.setLastResumeTime(Instant.now().minusSeconds(120));
         testSession.setTotalActiveMinutes(0);
         UserDailyStats testDailyStats = new UserDailyStats(testUser);
-        FinishTomatoSessionDTORequest request = new FinishTomatoSessionDTORequest(SESSION_ID, TomatoStatus.INTERRUPTED);
+        FinishTomatoSessionDTORequest request = new FinishTomatoSessionDTORequest(TomatoStatus.INTERRUPTED);
         LocalDate now = LocalDate.now();
 
         doReturn(USER_ID).when(this.userService).getUserIdFromUserDetails(testUserDetails);
@@ -562,7 +566,8 @@ class TomatoSessionServiceTest {
             return inv.getArgument(0);
         });
 
-        TomatoSessionDTOResponse dtoResponse = this.tomatoSessionService.finishTomatoSession(testUserDetails, request);
+        TomatoSessionDTOResponse dtoResponse = this.tomatoSessionService
+                .finishTomatoSession(testUserDetails, SESSION_ID, request);
 
         assertNotNull(dtoResponse);
         assertThat(dtoResponse.status()).isEqualTo(TomatoStatus.INTERRUPTED);
@@ -579,11 +584,12 @@ class TomatoSessionServiceTest {
     @Test
     @DisplayName("Должен выбросить исключение NotFoundException для несуществующей сессии")
     void finishTomatoSession_SessionNotExist_ThrowNotFoundException(){
-        FinishTomatoSessionDTORequest request = new FinishTomatoSessionDTORequest(SESSION_ID, TomatoStatus.INTERRUPTED);
+        FinishTomatoSessionDTORequest request = new FinishTomatoSessionDTORequest(TomatoStatus.INTERRUPTED);
         doReturn(USER_ID).when(this.userService).getUserIdFromUserDetails(testUserDetails);
         doReturn(Optional.empty()).when(this.repository).findById(SESSION_ID);
 
-        assertThatThrownBy(() -> this.tomatoSessionService.finishTomatoSession(testUserDetails, request))
+        assertThatThrownBy(() -> this.tomatoSessionService
+                .finishTomatoSession(testUserDetails, SESSION_ID, request))
                 .isInstanceOf(NotFoundException.class);
 
         verify(this.userService).getUserIdFromUserDetails(testUserDetails);
@@ -594,13 +600,14 @@ class TomatoSessionServiceTest {
     @Test
     @DisplayName("Должен выбросить исключение InvalidSessionStatusException при попытке увеличить не запущенную или остановленную сессию")
     void finishTomatoSession_InvalidStatus_ThrowInvalidSessionStatusException() {
-        FinishTomatoSessionDTORequest request = new FinishTomatoSessionDTORequest(SESSION_ID, TomatoStatus.INTERRUPTED);
+        FinishTomatoSessionDTORequest request = new FinishTomatoSessionDTORequest(TomatoStatus.INTERRUPTED);
         testSession.setStatus(TomatoStatus.INTERRUPTED);
         testSession.setId(SESSION_ID);
         doReturn(USER_ID).when(this.userService).getUserIdFromUserDetails(testUserDetails);
         doReturn(Optional.of(testSession)).when(this.repository).findById(SESSION_ID);
 
-        assertThatThrownBy(() -> this.tomatoSessionService.finishTomatoSession(testUserDetails, request))
+        assertThatThrownBy(() -> this.tomatoSessionService
+                .finishTomatoSession(testUserDetails, SESSION_ID, request))
                 .isInstanceOf(InvalidSessionStatusException.class);
 
         verify(this.userService).getUserIdFromUserDetails(testUserDetails);
@@ -611,11 +618,12 @@ class TomatoSessionServiceTest {
     @Test
     @DisplayName("Должен выбросить исключение OwningDeniedException, если сессия не принадлежит переданному пользователю")
     void finishTomatoSession_WrongUser_ThrowOwningDeniedException(){
-        FinishTomatoSessionDTORequest request = new FinishTomatoSessionDTORequest(SESSION_ID, TomatoStatus.INTERRUPTED);
+        FinishTomatoSessionDTORequest request = new FinishTomatoSessionDTORequest(TomatoStatus.INTERRUPTED);
         doReturn(USER_ID + 4).when(this.userService).getUserIdFromUserDetails(testUserDetails);
         doReturn(Optional.of(testSession)).when(this.repository).findById(SESSION_ID);
 
-        assertThatThrownBy(() -> this.tomatoSessionService.finishTomatoSession(testUserDetails, request))
+        assertThatThrownBy(() -> this.tomatoSessionService
+                .finishTomatoSession(testUserDetails, SESSION_ID, request))
                 .isInstanceOf(OwningDeniedException.class);
 
         verify(this.userService).getUserIdFromUserDetails(testUserDetails);
@@ -628,7 +636,8 @@ class TomatoSessionServiceTest {
     void getCurrentRunningSession_PayloadValidExist_ReturnResponseDTO() {
         testSession.setId(SESSION_ID);
         doReturn(USER_ID).when(this.userService).getUserIdFromUserDetails(testUserDetails);
-        doReturn(Optional.of(testSession)).when(this.repository).findTomatoSessionByUserIdAndStatus(USER_ID, TomatoStatus.RUNNING);
+        doReturn(Optional.of(testSession)).when(this.repository)
+                .findTomatoSessionByUserIdAndStatus(USER_ID, TomatoStatus.RUNNING);
 
         Optional<TomatoSessionDTOResponse> dtoResponse = this.tomatoSessionService.getCurrentRunningSession(testUserDetails);
 
@@ -643,7 +652,8 @@ class TomatoSessionServiceTest {
     @DisplayName("Должен вернуть пустой Optional, когда сессии нет")
     void getCurrentRunningSession_PayloadValidNotExist_ReturnResponseDTO() {
         doReturn(USER_ID).when(this.userService).getUserIdFromUserDetails(testUserDetails);
-        doReturn(Optional.empty()).when(this.repository).findTomatoSessionByUserIdAndStatus(USER_ID, TomatoStatus.RUNNING);
+        doReturn(Optional.empty()).when(this.repository)
+                .findTomatoSessionByUserIdAndStatus(USER_ID, TomatoStatus.RUNNING);
 
         Optional<TomatoSessionDTOResponse> dtoResponse = this.tomatoSessionService.getCurrentRunningSession(testUserDetails);
 
@@ -800,11 +810,11 @@ class TomatoSessionServiceTest {
         doReturn(dailyStats).when(this.userDailyStatsService).getUserDailyStatsOrCreate(USER_ID, LocalDate.now());
 
         // when
-        TomatoSessionRecommendationDTOResponse result = this.tomatoSessionService.recommendTomatoSession(testUserDetails);
+        TomatoSessionRecommendationDTOResponse result = this.tomatoSessionService
+                .recommendTomatoSessionType(testUserDetails);
 
         // then
         assertNotNull(result);
-        assertThat(result.userId()).isEqualTo(USER_ID);
         assertThat(result.type()).isEqualTo(TomatoType.TIMER);
 
         verify(this.userService).getUserIdFromUserDetails(testUserDetails);
@@ -832,11 +842,10 @@ class TomatoSessionServiceTest {
                 eq(USER_ID), anyList());
 
         // when
-        TomatoSessionRecommendationDTOResponse result = this.tomatoSessionService.recommendTomatoSession(testUserDetails);
+        TomatoSessionRecommendationDTOResponse result = this.tomatoSessionService.recommendTomatoSessionType(testUserDetails);
 
         // then
         assertNotNull(result);
-        assertThat(result.userId()).isEqualTo(USER_ID);
         assertThat(result.type()).isEqualTo(TomatoType.TIMER);
 
         verify(this.userService).getUserIdFromUserDetails(testUserDetails);
@@ -864,11 +873,10 @@ class TomatoSessionServiceTest {
                 eq(USER_ID), anyList());
 
         // when
-        TomatoSessionRecommendationDTOResponse result = this.tomatoSessionService.recommendTomatoSession(testUserDetails);
+        TomatoSessionRecommendationDTOResponse result = this.tomatoSessionService.recommendTomatoSessionType(testUserDetails);
 
         // then
         assertNotNull(result);
-        assertThat(result.userId()).isEqualTo(USER_ID);
         assertThat(result.type()).isEqualTo(TomatoType.TIMER);
 
         verify(this.repository).findFirstByUserIdAndStatusInOrderByStartTimeDesc(eq(USER_ID), anyList());
@@ -893,11 +901,10 @@ class TomatoSessionServiceTest {
                 eq(USER_ID), anyList());
 
         // when
-        TomatoSessionRecommendationDTOResponse result = this.tomatoSessionService.recommendTomatoSession(testUserDetails);
+        TomatoSessionRecommendationDTOResponse result = this.tomatoSessionService.recommendTomatoSessionType(testUserDetails);
 
         // then
         assertNotNull(result);
-        assertThat(result.userId()).isEqualTo(USER_ID);
         assertThat(result.type()).isEqualTo(TomatoType.SHORT_BREAK);
 
         verify(this.userSettingsService).getUserSettingsByUserId(USER_ID);
@@ -924,11 +931,10 @@ class TomatoSessionServiceTest {
                 eq(USER_ID), anyList());
 
         // when
-        TomatoSessionRecommendationDTOResponse result = this.tomatoSessionService.recommendTomatoSession(testUserDetails);
+        TomatoSessionRecommendationDTOResponse result = this.tomatoSessionService.recommendTomatoSessionType(testUserDetails);
 
         // then
         assertNotNull(result);
-        assertThat(result.userId()).isEqualTo(USER_ID);
         assertThat(result.type()).isEqualTo(TomatoType.LONG_BREAK);
 
         verify(this.userSettingsService).getUserSettingsByUserId(USER_ID);

@@ -8,11 +8,9 @@ import java.util.UUID;
 
 /**
  * DTO для завершения томата или прерывания
- * @param sessionId
+ * @param status - статус, который будет установлен для томата. Может быть INTERRUPTED или COMPLETED
  */
 public record FinishTomatoSessionDTORequest(
-        Long sessionId,
-
         @NotNull(message = "Type is required. Can be INTERRUPTED and COMPLETED")
         TomatoStatus status
 ) {
