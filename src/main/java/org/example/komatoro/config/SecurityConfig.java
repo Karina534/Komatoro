@@ -84,7 +84,7 @@ public class SecurityConfig {
                 .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(authorize ->
                         authorize.requestMatchers(LOGIN).permitAll()
-                        .requestMatchers("/api/users/registration", "/error").permitAll()
+                        .requestMatchers("/api/v1/users/registration", "/error").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_ADMIN"))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(basicAuthenticationEntryPoint))
@@ -117,7 +117,7 @@ public class SecurityConfig {
                     .csrf(AbstractHttpConfigurer::disable)
                     .httpBasic(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(authorize -> authorize
-                            .requestMatchers("/api/users/registration", "/error").permitAll()
+                            .requestMatchers("/api/v1/users/registration", "/error").permitAll()
                             .requestMatchers("/swagger-ui/**").permitAll()
                             .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_ADMIN"))
                     .with(jwtAuthenticationConfigurer, Customizer.withDefaults())

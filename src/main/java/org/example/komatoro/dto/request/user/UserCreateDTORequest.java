@@ -16,7 +16,8 @@ public record UserCreateDTORequest(
                 "underscores and hyphens")
         String username,
 
-        //TODO: Добавить pattern ограничение на пароль
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,}$",
+                message = "Password must be at least 6 characters and contain both letters and numbers")
         @NotBlank(message = "Password is required")
         @Size(min = 6, max = 50, message = "password must be between {min} and {max} characters")
         String password,

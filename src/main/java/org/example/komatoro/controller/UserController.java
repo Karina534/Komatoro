@@ -36,7 +36,6 @@ public class UserController {
 
         UserDTOResponse response = userService.registration(createDTORequest);
 
-        log.info("User created");
         return ResponseEntity.ok(response);
     }
 
