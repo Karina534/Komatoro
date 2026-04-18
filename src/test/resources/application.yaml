@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:16:///komatoro?TC_DEAMON=true
+    username: komatoro
+    password: komatoro
+
+jwt:
+  access-token-key: '{"kty":"oct","k":"asfgMthWBltjKyJn791rD38LKqirGhI8dWYEh_hzrWI"}'
+  refresh-token-key: '{"kty":"oct","k":"HWS6epvQPr1R71__85JrI66ONrXJLQOnJT4vaRuOQjM"}'

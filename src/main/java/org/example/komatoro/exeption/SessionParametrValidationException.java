@@ -1,6 +1,5 @@
 package org.example.komatoro.exeption;
 
-import org.example.komatoro.exeption.BusinessException;
 import org.springframework.http.HttpStatus;
 
 import java.util.Map;

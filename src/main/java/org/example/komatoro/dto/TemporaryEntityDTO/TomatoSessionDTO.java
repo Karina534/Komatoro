@@ -6,7 +6,6 @@ import org.example.komatoro.model.TomatoType;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public record TomatoSessionDTO(
         Long id,

@@ -4,7 +4,6 @@ import org.example.komatoro.model.TomatoStatus;
 import org.springframework.http.HttpStatus;
 
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Исключение, если пользователь пытается изменить статус сессии на недопустимый

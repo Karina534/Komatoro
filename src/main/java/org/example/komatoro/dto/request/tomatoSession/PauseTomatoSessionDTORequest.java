@@ -3,7 +3,6 @@ package org.example.komatoro.dto.request.tomatoSession;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * DTO для остановки сессии

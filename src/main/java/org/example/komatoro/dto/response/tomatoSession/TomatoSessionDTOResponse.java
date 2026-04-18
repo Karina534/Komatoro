@@ -4,8 +4,6 @@ import org.example.komatoro.model.TomatoStatus;
 import org.example.komatoro.model.TomatoType;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * DTO ответа для сессии

@@ -2,9 +2,7 @@ package org.example.komatoro.dto.request.tomatoSession;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 
-import java.util.UUID;
 
 /**
  * DTO для начала томата

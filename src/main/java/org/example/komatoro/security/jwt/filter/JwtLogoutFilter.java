@@ -26,7 +26,7 @@ public class JwtLogoutFilter extends OncePerRequestFilter {
             .withDefaults().matcher(HttpMethod.POST, "/auth/logout");
 
     @Setter
-    private final Function<String, JwtToken> refreshTokenDeserializer;
+    private Function<String, JwtToken> refreshTokenDeserializer;
     private final JdbcTemplate jdbcTemplate;
 
     public JwtLogoutFilter(Function<String, JwtToken> refreshTokenDeserializer, JdbcTemplate jdbcTemplate) {

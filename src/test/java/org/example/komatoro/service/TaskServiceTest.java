@@ -269,7 +269,7 @@ class TaskServiceTest {
         verifyNoMoreInteractions(this.mapper);
     }
 
-    // Есть ли смысл добавить два варианта
+    //TODO: Есть ли смысл добавить два варианта
     @Test
     void isExist_ReturnBoolean() {
         when(this.taskRepository.existsById(5L)).thenReturn(true);

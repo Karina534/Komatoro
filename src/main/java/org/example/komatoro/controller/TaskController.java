@@ -5,12 +5,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.example.komatoro.dto.request.task.CreateTaskDTORequest;
-import org.example.komatoro.dto.TemporaryEntityDTO.TaskDTO;
 import org.example.komatoro.dto.request.task.UpdateTaskDTORequest;
 import org.example.komatoro.dto.response.task.TaskDTOResponse;
-import org.example.komatoro.security.CustomUserDetails;
 import org.example.komatoro.service.ITaskService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,9 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @Validated

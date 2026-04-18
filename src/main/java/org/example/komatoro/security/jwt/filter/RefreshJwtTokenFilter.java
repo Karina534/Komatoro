@@ -35,7 +35,7 @@ public class RefreshJwtTokenFilter extends OncePerRequestFilter {
     private Function<JwtToken, String> accessTokenSerializer = Objects::toString;
 
     @Setter
-    private final Function<String, JwtToken> refreshTokenDeserializer;
+    private Function<String, JwtToken> refreshTokenDeserializer;
 
     @Setter
     private ObjectMapper objectMapper = new ObjectMapper();

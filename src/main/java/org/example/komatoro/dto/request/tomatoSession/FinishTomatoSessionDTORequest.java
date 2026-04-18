@@ -3,9 +3,6 @@ package org.example.komatoro.dto.request.tomatoSession;
 import jakarta.validation.constraints.NotNull;
 import org.example.komatoro.model.TomatoStatus;
 
-import java.time.Instant;
-import java.util.UUID;
-
 /**
  * DTO для завершения томата или прерывания
  * @param status - статус, который будет установлен для томата. Может быть INTERRUPTED или COMPLETED
