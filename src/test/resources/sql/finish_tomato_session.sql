@@ -1,0 +1,2 @@
+insert into tomato_sessions (id, user_id, task_id, created_at, type, start_time, end_time, intended_minutes, status, total_active_minutes, last_resume_time, version)
+values (2, 1, 1, '2024-06-01T08:00:0Z', 'TIMER', '2024-06-01T08:00:00Z', '2024-06-01T08:25:00Z', 25, 'COMPLETED', 25, null, 1);

@@ -10,8 +10,8 @@ import java.util.Map;
 public class SessionParametrValidationException extends BusinessException {
     public SessionParametrValidationException(String param){
         super(
-                "INVALID_SESSION_PARAMETR",
-                String.format("You try to update entity with unsupported parametr %s ", param),
+                "INVALID_SESSION_PARAMETER",
+                String.format("You try to update entity with unsupported parameter %s ", param),
                 Map.of("param", param),
                 HttpStatus.UNPROCESSABLE_ENTITY
         );
